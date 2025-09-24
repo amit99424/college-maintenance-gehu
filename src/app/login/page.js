@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
@@ -22,6 +22,10 @@ export default function LoginPage() {
   const [captcha, setCaptcha] = useState("");
   const [captchaInput, setCaptchaInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [captchaError, setCaptchaError] = useState("");
+  const [refreshingCaptcha, setRefreshingCaptcha] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [lastRefreshTime, setLastRefreshTime] = useState(0);
 
   // modal states
   const [showMaintenanceKeyModal, setShowMaintenanceKeyModal] = useState(false);
@@ -30,41 +34,99 @@ export default function LoginPage() {
 
   const router = useRouter();
 
-  // captcha generator
-  const generateCaptcha = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  // Enhanced captcha generator with better security
+  const generateCaptcha = useCallback(() => {
+    const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const numbers = "23456789";
+    const allChars = letters + numbers;
+
     let newCaptcha = "";
-    for (let i = 0; i < 6; i++) {
-      newCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
+    // Ensure variety: at least one letter and one number
+    newCaptcha += letters.charAt(Math.floor(Math.random() * letters.length));
+    newCaptcha += numbers.charAt(Math.floor(Math.random() * numbers.length));
+
+    // Fill remaining 4 characters randomly
+    for (let i = 0; i < 4; i++) {
+      newCaptcha += allChars.charAt(Math.floor(Math.random() * allChars.length));
     }
+
+    // Shuffle the captcha string
+    newCaptcha = newCaptcha.split('').sort(() => Math.random() - 0.5).join('');
+
     setCaptcha(newCaptcha);
-  };
+    setCaptchaError("");
+    setLastRefreshTime(Date.now());
+  }, []);
 
   // Generate captcha on first render
   useEffect(() => {
     generateCaptcha();
-  }, []);
+  }, [generateCaptcha]);
 
-  // login handler
+  // Enhanced captcha refresh with rate limiting
+  const handleCaptchaRefresh = () => {
+    const now = Date.now();
+    const timeSinceLastRefresh = now - lastRefreshTime;
+
+    // Rate limiting: minimum 2 seconds between refreshes
+    if (timeSinceLastRefresh < 2000) {
+      setCaptchaError("Please wait before refreshing again");
+      return;
+    }
+
+    setRefreshingCaptcha(true);
+    setCaptchaError("");
+
+    // Simulate loading state
+    setTimeout(() => {
+      generateCaptcha();
+      setRefreshingCaptcha(false);
+    }, 500);
+  };
+
+  // Enhanced login handler with better validation
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setCaptchaError("");
 
     try {
-      // 1. Validate captcha
-      if (captchaInput.toUpperCase() !== captcha.toUpperCase()) {
-        alert("Captcha incorrect!");
+      // 1. Validate captcha with enhanced security
+      const normalizedCaptchaInput = captchaInput.trim().toUpperCase();
+      const normalizedCaptcha = captcha.toUpperCase();
+
+      if (normalizedCaptchaInput !== normalizedCaptcha) {
+        setCaptchaError("Captcha is incorrect. Please try again.");
+        setAttempts(prev => prev + 1);
         generateCaptcha();
+        setCaptchaInput("");
         setIsLoading(false);
+
+        // Rate limiting after multiple failed attempts
+        if (attempts >= 2) {
+          setCaptchaError("Multiple failed attempts. Please wait before trying again.");
+          setTimeout(() => {
+            setAttempts(0);
+            setCaptchaError("");
+          }, 5000);
+        }
         return;
       }
 
-      // 2. Clean email & password
+      // 2. Clean and validate email & password
       const emailTrimmed = email.trim();
       const passwordTrimmed = password.trim();
 
       if (!emailTrimmed || !passwordTrimmed) {
-        alert("Email and password are required!");
+        setCaptchaError("Email and password are required!");
+        setIsLoading(false);
+        return;
+      }
+
+      // Email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailTrimmed)) {
+        setCaptchaError("Please enter a valid email address");
         setIsLoading(false);
         return;
       }
@@ -80,7 +142,7 @@ export default function LoginPage() {
       const docSnap = await getDoc(doc(db, "users", userCred.user.uid));
 
       if (!docSnap.exists()) {
-        alert("No user data found in database!");
+        setCaptchaError("No user data found in database!");
         setIsLoading(false);
         return;
       }
@@ -103,32 +165,32 @@ export default function LoginPage() {
         setPendingUser(userData);
         setShowMaintenanceKeyModal(true);
       } else {
-        alert("Unknown role. Please contact admin.");
+        setCaptchaError("Unknown role. Please contact admin.");
         router.push("/");
       }
     } catch (error) {
       console.error("❌ Login error:", error);
 
-      // Handle Firebase auth errors
+      // Enhanced error handling with user-friendly messages
       if (error.code === "auth/user-not-found") {
-        alert("No account found with this email.");
+        setCaptchaError("No account found with this email address.");
       } else if (error.code === "auth/wrong-password") {
-        alert("Incorrect password. Please try again.");
+        setCaptchaError("Incorrect password. Please check and try again.");
       } else if (
         error.code === "auth/invalid-credential" ||
         error.code === "auth/invalid-login-credentials"
       ) {
-        alert("Authentication failed. Check your email and password.");
+        setCaptchaError("Authentication failed. Please check your credentials.");
       } else if (error.code === "auth/too-many-requests") {
-        alert("Too many failed login attempts. Try again later.");
+        setCaptchaError("Too many login attempts. Please wait a few minutes before trying again.");
       } else if (error.code === "auth/network-request-failed") {
-        alert("Network error. Check your internet connection.");
+        setCaptchaError("Network error. Please check your internet connection and try again.");
       } else if (error.code === "auth/invalid-email") {
-        alert("Invalid email format.");
+        setCaptchaError("Please enter a valid email address.");
       } else if (error.code === "auth/user-disabled") {
-        alert("This account has been disabled. Contact admin.");
+        setCaptchaError("This account has been disabled. Please contact your administrator.");
       } else {
-        alert(`Login failed: ${error.message}`);
+        setCaptchaError(`Login failed: ${error.message}`);
       }
     } finally {
       setIsLoading(false);
@@ -146,8 +208,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full">
-      {/* Background */}
+    <div className="relative min-h-screen w-full">      
+    {/* Background */}
       <div className="absolute inset-0 -z-10">
         <Image
           src="/login-bg.png"
@@ -204,17 +266,64 @@ export default function LoginPage() {
                 Captcha
               </label>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                <div className="bg-gray-100 text-lg sm:text-xl font-bold tracking-widest px-3 sm:px-4 py-2 sm:py-3 rounded min-w-[100px] sm:min-w-[120px] text-center border-2 border-gray-400 shadow-sm text-gray-900">
-                  {captcha || "------"}
+                <div className="relative flex items-center">
+                  {/* Refresh Button */}
+                  <button
+                    type="button"
+                    onClick={handleCaptchaRefresh}
+                    disabled={refreshingCaptcha}
+                    className={`absolute left-2 z-10 w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 transition-all duration-200 ${
+                      refreshingCaptcha
+                        ? "border-gray-300 bg-gray-200 cursor-not-allowed"
+                        : "border-blue-500 bg-white hover:bg-blue-50 cursor-pointer"
+                    } flex items-center justify-center`}
+                    style={{
+                      background: refreshingCaptcha ? '#f3f4f6' : 'linear-gradient(45deg, #3b82f6, #06b6d4)',
+                      border: refreshingCaptcha ? '2px solid #d1d5db' : '2px solid #3b82f6'
+                    }}
+                  >
+                    <svg
+                      className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
+                        refreshingCaptcha ? 'animate-spin' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Captcha Display */}
+                  <div
+                    className="text-lg sm:text-xl font-bold tracking-widest px-4 sm:px-5 py-2 sm:py-3 rounded-lg min-w-[100px] sm:min-w-[320px] text-center shadow-lg text-white relative overflow-hidden"
+                    style={{
+                      background: refreshingCaptcha
+                        ? '#e5e7eb'
+                        : 'linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #8b5cf6 100%)',
+                      border: '2px solid transparent',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-20">
+                      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent"></div>
+                    </div>
+                    <span className="relative z-10">
+                      {refreshingCaptcha ? "..." : (captcha || "------")}
+                    </span>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={generateCaptcha}
-                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  Refresh
-                </button>
               </div>
+              {captchaError && (
+                <p className="text-xs sm:text-sm text-red-600 font-medium">
+                  {captchaError}
+                </p>
+              )}
               <input
                 type="text"
                 placeholder="Enter the captcha text above"
@@ -229,11 +338,10 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 text-sm sm:text-base rounded-lg text-white font-semibold transition-colors ${
-                isLoading
+              className={`w-full py-3 text-sm sm:text-base rounded-lg text-white font-semibold transition-colors ${isLoading
                   ? "bg-blue-500 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"
-              }`}
+                }`}
             >
               {isLoading ? "Processing..." : "LOGIN"}
             </button>
