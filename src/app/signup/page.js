@@ -6,13 +6,6 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
 import { doc, setDoc } from "firebase/firestore";
 import Image from "next/image";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -91,10 +84,13 @@ export default function SignupPage() {
         email,
         role,
         name: name.trim(),
-        collegeId: collegeId.trim(),
-        department: department.trim(),
         createdAt: new Date().toISOString(),
       };
+
+      if (role !== "staff" && role !== "supervisor" && role !== "maintenance") {
+        userData.collegeId = collegeId.trim();
+        userData.department = department.trim();
+      }
 
       if (role === "supervisor") {
         userData.category = category;
@@ -112,7 +108,10 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden" style={{ overscrollBehavior: 'none' }}>
+    <div
+      className="relative h-screen w-full overflow-hidden"
+      style={{ overscrollBehavior: "none" }}
+    >
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         <Image
@@ -126,7 +125,10 @@ export default function SignupPage() {
       </div>
 
       {/* Main Container */}
-      <div className="relative z-10 flex flex-col justify-start min-h-full px-4 sm:px-6 lg:px-8 pt-16 pb-8 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'none' }}>
+      <div
+        className="relative z-10 flex flex-col justify-center items-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto"
+        style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "none" }}
+      >
         <div className="w-full max-w-md sm:max-w-sm">
           <form
             onSubmit={handleSignup}
@@ -154,23 +156,29 @@ export default function SignupPage() {
               className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
 
-            <input
-              type="text"
-              placeholder="College ID"
-              value={collegeId}
-              onChange={(e) => setCollegeId(e.target.value)}
-              required
-              className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-            />
+            {(role !== "staff" &&
+              role !== "supervisor" &&
+              role !== "maintenance") && (
+              <>
+                <input
+                  type="text"
+                  placeholder="College ID"
+                  value={collegeId}
+                  onChange={(e) => setCollegeId(e.target.value)}
+                  required
+                  className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                />
 
-            <input
-              type="text"
-              placeholder="Department"
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-              required
-              className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-            />
+                <input
+                  type="text"
+                  placeholder="Department"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  required
+                  className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                />
+              </>
+            )}
 
             <select
               value={role}

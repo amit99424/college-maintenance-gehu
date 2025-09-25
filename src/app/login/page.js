@@ -34,42 +34,34 @@ export default function LoginPage() {
 
   const router = useRouter();
 
-  // Enhanced captcha generator with better security
+  // captcha generator
   const generateCaptcha = useCallback(() => {
     const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
     const numbers = "23456789";
     const allChars = letters + numbers;
 
     let newCaptcha = "";
-    // Ensure variety: at least one letter and one number
     newCaptcha += letters.charAt(Math.floor(Math.random() * letters.length));
     newCaptcha += numbers.charAt(Math.floor(Math.random() * numbers.length));
 
-    // Fill remaining 4 characters randomly
     for (let i = 0; i < 4; i++) {
       newCaptcha += allChars.charAt(Math.floor(Math.random() * allChars.length));
     }
 
-    // Shuffle the captcha string
-    newCaptcha = newCaptcha.split('').sort(() => Math.random() - 0.5).join('');
+    newCaptcha = newCaptcha.split("").sort(() => Math.random() - 0.5).join("");
 
     setCaptcha(newCaptcha);
     setCaptchaError("");
     setLastRefreshTime(Date.now());
   }, []);
 
-  // Generate captcha on first render
   useEffect(() => {
     generateCaptcha();
   }, [generateCaptcha]);
 
-  // Enhanced captcha refresh with rate limiting
   const handleCaptchaRefresh = () => {
     const now = Date.now();
-    const timeSinceLastRefresh = now - lastRefreshTime;
-
-    // Rate limiting: minimum 2 seconds between refreshes
-    if (timeSinceLastRefresh < 2000) {
+    if (now - lastRefreshTime < 2000) {
       setCaptchaError("Please wait before refreshing again");
       return;
     }
@@ -77,32 +69,28 @@ export default function LoginPage() {
     setRefreshingCaptcha(true);
     setCaptchaError("");
 
-    // Simulate loading state
     setTimeout(() => {
       generateCaptcha();
       setRefreshingCaptcha(false);
     }, 500);
   };
 
-  // Enhanced login handler with better validation
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setCaptchaError("");
 
     try {
-      // 1. Validate captcha with enhanced security
       const normalizedCaptchaInput = captchaInput.trim().toUpperCase();
       const normalizedCaptcha = captcha.toUpperCase();
 
       if (normalizedCaptchaInput !== normalizedCaptcha) {
         setCaptchaError("Captcha is incorrect. Please try again.");
-        setAttempts(prev => prev + 1);
+        setAttempts((prev) => prev + 1);
         generateCaptcha();
         setCaptchaInput("");
         setIsLoading(false);
 
-        // Rate limiting after multiple failed attempts
         if (attempts >= 2) {
           setCaptchaError("Multiple failed attempts. Please wait before trying again.");
           setTimeout(() => {
@@ -113,7 +101,6 @@ export default function LoginPage() {
         return;
       }
 
-      // 2. Clean and validate email & password
       const emailTrimmed = email.trim();
       const passwordTrimmed = password.trim();
 
@@ -123,7 +110,6 @@ export default function LoginPage() {
         return;
       }
 
-      // Email format validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(emailTrimmed)) {
         setCaptchaError("Please enter a valid email address");
@@ -131,14 +117,12 @@ export default function LoginPage() {
         return;
       }
 
-      // 3. Firebase login
       const userCred = await signInWithEmailAndPassword(
         auth,
         emailTrimmed,
         passwordTrimmed
       );
 
-      // 4. Fetch user data from Firestore
       const docSnap = await getDoc(doc(db, "users", userCred.user.uid));
 
       if (!docSnap.exists()) {
@@ -149,12 +133,8 @@ export default function LoginPage() {
 
       const userData = { ...docSnap.data(), uid: userCred.user.uid };
 
-      console.log("✅ Logged in user data:", userData);
-
-      // Save user in localStorage
       localStorage.setItem("userData", JSON.stringify(userData));
 
-      // 5. Redirect based on role
       if (userData.role === "student") {
         router.push("/student-dashboard");
       } else if (userData.role === "staff") {
@@ -170,8 +150,6 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("❌ Login error:", error);
-
-      // Enhanced error handling with user-friendly messages
       if (error.code === "auth/user-not-found") {
         setCaptchaError("No account found with this email address.");
       } else if (error.code === "auth/wrong-password") {
@@ -197,7 +175,6 @@ export default function LoginPage() {
     }
   };
 
-  // maintenance key submit
   const handleMaintenanceKeySubmit = () => {
     if (maintenanceKeyInput === MAINTENANCE_KEY) {
       setShowMaintenanceKeyModal(false);
@@ -208,8 +185,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden" style={{ overscrollBehavior: 'none' }}>
-    {/* Background */}
+    <div className="relative h-screen w-full overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 -z-10">
         <Image
           src="/login-bg.png"
@@ -222,11 +199,11 @@ export default function LoginPage() {
       </div>
 
       {/* Main Container */}
-      <div className="relative z-10 flex flex-col justify-start min-h-full px-4 sm:px-6 lg:px-8 pt-16 pb-8 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'none' }}>
-        <div className="w-full max-w-xs sm:max-w-md md:max-w-lg">
+      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full max-w-xs sm:max-w-sm">
           <form
             onSubmit={handleLogin}
-            className="flex flex-col gap-4 sm:gap-5 bg-white/50 p-4 sm:p-6 md:p-8 rounded-lg shadow-2xl border border-gray-200"
+            className="flex flex-col gap-4 sm:gap-5 bg-white/50 p-4 sm:p-6 md:p-8 rounded-lg shadow-2xl border border-gray-200 overflow-y-auto max-h-[90vh]"
           >
             {/* Logo */}
             <div className="flex justify-center mb-3 sm:mb-4">
@@ -267,7 +244,7 @@ export default function LoginPage() {
               </label>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                 <div className="relative flex items-center w-full sm:w-auto">
-                  {/* Refresh Button */} 
+                  {/* Refresh Button */}
                   <button
                     type="button"
                     onClick={handleCaptchaRefresh}
@@ -278,13 +255,17 @@ export default function LoginPage() {
                         : "border-blue-500 bg-white hover:bg-blue-50 cursor-pointer"
                     } flex items-center justify-center`}
                     style={{
-                      background: refreshingCaptcha ? '#f3f4f6' : 'linear-gradient(45deg, #3b82f6, #06b6d4)',
-                      border: refreshingCaptcha ? '2px solid #d1d5db' : '2px solid #3b82f6'
+                      background: refreshingCaptcha
+                        ? "#f3f4f6"
+                        : "linear-gradient(45deg, #3b82f6, #06b6d4)",
+                      border: refreshingCaptcha
+                        ? "2px solid #d1d5db"
+                        : "2px solid #3b82f6",
                     }}
                   >
                     <svg
                       className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
-                        refreshingCaptcha ? 'animate-spin' : ''
+                        refreshingCaptcha ? "animate-spin" : ""
                       }`}
                       fill="none"
                       stroke="currentColor"
@@ -301,20 +282,21 @@ export default function LoginPage() {
 
                   {/* Captcha Display */}
                   <div
-                    className="text-lg sm:text-xl font-bold tracking-widest px-4 sm:px-5 py-2 sm:py-3 rounded-lg min-w-[100px] sm:min-w-[320px] text-center shadow-lg text-white relative overflow-hidden w-full sm:w-auto"
+                    className="text-lg sm:text-xl font-bold tracking-widest px-4 sm:px-5 py-2 sm:py-3 rounded-lg min-w-[100px] sm:min-w-[315px] text-center shadow-lg text-white relative overflow-hidden w-full sm:w-auto"
                     style={{
                       background: refreshingCaptcha
-                        ? '#e5e7eb'
-                        : 'linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #8b5cf6 100%)',
-                      border: '2px solid transparent',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                        ? "#e5e7eb"
+                        : "linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #8b5cf6 100%)",
+                      border: "2px solid transparent",
+                      boxShadow:
+                        "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
                     }}
                   >
                     <div className="absolute inset-0 opacity-20">
                       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent"></div>
                     </div>
                     <span className="relative z-10">
-                      {refreshingCaptcha ? "..." : (captcha || "------")}
+                      {refreshingCaptcha ? "..." : captcha || "------"}
                     </span>
                   </div>
                 </div>
@@ -338,10 +320,11 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 text-sm sm:text-base rounded-lg text-white font-semibold transition-colors ${isLoading
+              className={`w-full py-3 text-sm sm:text-base rounded-lg text-white font-semibold transition-colors ${
+                isLoading
                   ? "bg-blue-500 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"
-                }`}
+              }`}
             >
               {isLoading ? "Processing..." : "LOGIN"}
             </button>
@@ -365,36 +348,36 @@ export default function LoginPage() {
         open={showMaintenanceKeyModal}
         onOpenChange={setShowMaintenanceKeyModal}
       >
-          <DialogContent className="p-4 sm:p-6 rounded-lg shadow-lg bg-white max-w-[95vw] sm:max-w-sm mx-auto mt-10 sm:mt-20 relative">
-            <DialogHeader>
-              <DialogTitle className="text-sm sm:text-base">
-                Enter Maintenance Key
-              </DialogTitle>
-            </DialogHeader>
+        <DialogContent className="p-4 sm:p-6 rounded-lg shadow-lg bg-white max-w-[95vw] sm:max-w-sm mx-auto mt-10 sm:mt-20 relative">
+          <DialogHeader>
+            <DialogTitle className="text-sm sm:text-base">
+              Enter Maintenance Key
+            </DialogTitle>
+          </DialogHeader>
 
-            <input
-              type="password"
-              placeholder="Enter Key"
-              value={maintenanceKeyInput}
-              onChange={(e) => setMaintenanceKeyInput(e.target.value)}
-              className="w-full p-3 mt-4 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <input
+            type="password"
+            placeholder="Enter Key"
+            value={maintenanceKeyInput}
+            onChange={(e) => setMaintenanceKeyInput(e.target.value)}
+            className="w-full p-3 mt-4 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
 
-            <DialogFooter className="flex justify-end gap-2 mt-4 flex-wrap sm:flex-nowrap">
-              <button
-                onClick={() => setShowMaintenanceKeyModal(false)}
-                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMaintenanceKeySubmit}
-                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
-              >
-                Submit
-              </button>
-            </DialogFooter>
-          </DialogContent>
+          <DialogFooter className="flex justify-end gap-2 mt-4 flex-wrap sm:flex-nowrap">
+            <button
+              onClick={() => setShowMaintenanceKeyModal(false)}
+              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleMaintenanceKeySubmit}
+              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
+            >
+              Submit
+            </button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );
