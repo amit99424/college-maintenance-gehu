@@ -223,10 +223,10 @@ export default function LoginPage() {
 
       {/* Main Container */}
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md sm:max-w-sm">
+        <div className="w-full max-w-xs sm:max-w-md md:max-w-lg">
           <form
             onSubmit={handleLogin}
-            className="flex flex-col gap-4 sm:gap-5 bg-white/50 p-6 sm:p-8 rounded-lg shadow-2xl border border-gray-200"
+            className="flex flex-col gap-4 sm:gap-5 bg-white/50 p-4 sm:p-6 md:p-8 rounded-lg shadow-2xl border border-gray-200"
           >
             {/* Logo */}
             <div className="flex justify-center mb-3 sm:mb-4">
@@ -266,8 +266,8 @@ export default function LoginPage() {
                 Captcha
               </label>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                <div className="relative flex items-center">
-                  {/* Refresh Button */}
+                <div className="relative flex items-center w-full sm:w-auto">
+                  {/* Refresh Button */} 
                   <button
                     type="button"
                     onClick={handleCaptchaRefresh}
@@ -301,7 +301,7 @@ export default function LoginPage() {
 
                   {/* Captcha Display */}
                   <div
-                    className="text-lg sm:text-xl font-bold tracking-widest px-4 sm:px-5 py-2 sm:py-3 rounded-lg min-w-[100px] sm:min-w-[320px] text-center shadow-lg text-white relative overflow-hidden"
+                    className="text-lg sm:text-xl font-bold tracking-widest px-4 sm:px-5 py-2 sm:py-3 rounded-lg min-w-[100px] sm:min-w-[320px] text-center shadow-lg text-white relative overflow-hidden w-full sm:w-auto"
                     style={{
                       background: refreshingCaptcha
                         ? '#e5e7eb'
@@ -365,36 +365,36 @@ export default function LoginPage() {
         open={showMaintenanceKeyModal}
         onOpenChange={setShowMaintenanceKeyModal}
       >
-        <DialogContent className="p-4 sm:p-6 rounded-lg shadow-lg bg-white max-w-[95vw] sm:max-w-sm mx-auto mt-10 sm:mt-20 relative">
-          <DialogHeader>
-            <DialogTitle className="text-sm sm:text-base">
-              Enter Maintenance Key
-            </DialogTitle>
-          </DialogHeader>
+          <DialogContent className="p-4 sm:p-6 rounded-lg shadow-lg bg-white max-w-[95vw] sm:max-w-sm mx-auto mt-10 sm:mt-20 relative">
+            <DialogHeader>
+              <DialogTitle className="text-sm sm:text-base">
+                Enter Maintenance Key
+              </DialogTitle>
+            </DialogHeader>
 
-          <input
-            type="password"
-            placeholder="Enter Key"
-            value={maintenanceKeyInput}
-            onChange={(e) => setMaintenanceKeyInput(e.target.value)}
-            className="w-full p-3 mt-4 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+            <input
+              type="password"
+              placeholder="Enter Key"
+              value={maintenanceKeyInput}
+              onChange={(e) => setMaintenanceKeyInput(e.target.value)}
+              className="w-full p-3 mt-4 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
 
-          <DialogFooter className="flex justify-end gap-2 mt-4">
-            <button
-              onClick={() => setShowMaintenanceKeyModal(false)}
-              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 rounded hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleMaintenanceKeySubmit}
-              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Submit
-            </button>
-          </DialogFooter>
-        </DialogContent>
+            <DialogFooter className="flex justify-end gap-2 mt-4 flex-wrap sm:flex-nowrap">
+              <button
+                onClick={() => setShowMaintenanceKeyModal(false)}
+                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMaintenanceKeySubmit}
+                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
+              >
+                Submit
+              </button>
+            </DialogFooter>
+          </DialogContent>
       </Dialog>
     </div>
   );
