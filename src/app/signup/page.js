@@ -112,7 +112,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full">
+    <div className="relative h-screen w-full overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         <Image
@@ -126,7 +126,7 @@ export default function SignupPage() {
       </div>
 
       {/* Main Container */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 lg:px-8 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="w-full max-w-md sm:max-w-sm">
           <form
             onSubmit={handleSignup}
