@@ -101,7 +101,11 @@ export default function SignupPage() {
       // ✅ After signup → go to login page
       router.push("/login");
     } catch (err) {
-      setError(err.message);
+      if (err.code === "auth/email-already-in-use") {
+        setError("Email already registered.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setIsLoading(false);
     }

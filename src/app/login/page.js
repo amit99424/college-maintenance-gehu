@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import Image from "next/image";
 import {
   Dialog,
@@ -85,11 +85,15 @@ export default function LoginPage() {
       const normalizedCaptcha = captcha.toUpperCase();
 
       if (normalizedCaptchaInput !== normalizedCaptcha) {
-        setCaptchaError("Captcha is incorrect. Please try again.");
+        setCaptchaError("Wrong captcha try again");
         setAttempts((prev) => prev + 1);
-        generateCaptcha();
         setCaptchaInput("");
         setIsLoading(false);
+
+        // Change captcha after showing error message
+        setTimeout(() => {
+          generateCaptcha();
+        }, 2000); // 2 seconds delay
 
         if (attempts >= 2) {
           setCaptchaError("Multiple failed attempts. Please wait before trying again.");
@@ -117,6 +121,18 @@ export default function LoginPage() {
         return;
       }
 
+      // Query Firestore users collection for email
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", emailTrimmed));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setCaptchaError("Wrong email.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Email exists, proceed with sign-in
       const userCred = await signInWithEmailAndPassword(
         auth,
         emailTrimmed,
@@ -149,22 +165,21 @@ export default function LoginPage() {
         router.push("/");
       }
     } catch (error) {
-      console.error("❌ Login error:", error);
-      if (error.code === "auth/user-not-found") {
-        setCaptchaError("No account found with this email address.");
-      } else if (error.code === "auth/wrong-password") {
-        setCaptchaError("Incorrect password. Please check and try again.");
-      } else if (
+      console.log("Login error object:", error);
+      console.log("Login error code:", error.code);
+      console.log("Login error message:", error.message);
+
+      if (
+        error.code === "auth/wrong-password" ||
         error.code === "auth/invalid-credential" ||
-        error.code === "auth/invalid-login-credentials"
+        error.code === "auth/invalid-login-credentials" ||
+        (error.message && error.message.toLowerCase().includes("wrong-password"))
       ) {
-        setCaptchaError("Authentication failed. Please check your credentials.");
+        setCaptchaError("Wrong password.");
       } else if (error.code === "auth/too-many-requests") {
         setCaptchaError("Too many login attempts. Please wait a few minutes before trying again.");
       } else if (error.code === "auth/network-request-failed") {
         setCaptchaError("Network error. Please check your internet connection and try again.");
-      } else if (error.code === "auth/invalid-email") {
-        setCaptchaError("Please enter a valid email address.");
       } else if (error.code === "auth/user-disabled") {
         setCaptchaError("This account has been disabled. Please contact your administrator.");
       } else {
@@ -282,7 +297,7 @@ export default function LoginPage() {
 
                   {/* Captcha Display */}
                   <div
-                    className="text-lg sm:text-xl font-bold tracking-widest px-4 sm:px-5 py-2 sm:py-3 rounded-lg min-w-[100px] sm:min-w-[315px] text-center shadow-lg text-white relative overflow-hidden w-full sm:w-auto"
+                    className="text-lg sm:text-xl font-bold tracking-widest px-4 sm:px-5 py-2 sm:py-3 rounded-lg min-w-[100px] sm:min-w-[315px] text-center shadow-lg text-white relative overflow-hidden w-full sm:w-auto select-none"
                     style={{
                       background: refreshingCaptcha
                         ? "#e5e7eb"
@@ -290,6 +305,10 @@ export default function LoginPage() {
                       border: "2px solid transparent",
                       boxShadow:
                         "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                      userSelect: "none",
+                      MozUserSelect: "none",
+                      WebkitUserSelect: "none",
+                      msUserSelect: "none",
                     }}
                   >
                     <div className="absolute inset-0 opacity-20">
