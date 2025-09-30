@@ -391,7 +391,7 @@ export default function LoginPage() {
             </button>
             <button
               onClick={handleMaintenanceKeySubmit}
-              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
+              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-500 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
             >
               Submit
             </button>
