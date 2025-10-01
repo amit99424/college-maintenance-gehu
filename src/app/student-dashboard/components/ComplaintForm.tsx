@@ -5,45 +5,36 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "@/firebase/config";
 
+// Category icons (replace with your preferred set or SVGs)
+const CATEGORY_OPTIONS = [
+  { value: "Electrical", label: "Electrical", icon: "💡" },
+  { value: "Plumbing", label: "Plumbing", icon: "🚰" },
+  { value: "Cleaning", label: "Cleaning", icon: "🧹" },
+  { value: "Internet", label: "Internet", icon: "🌐" },
+  { value: "Security", label: "Security", icon: "🔒" },
+];
+
 export default function ComplaintForm() {
   const [formData, setFormData] = useState({
-    building: "",
-    room: "",
-    category: "",
     title: "",
+    location: "",
+    contactNumber: "",
     description: "",
+    category: "",
+    preferredDate: "",
+    preferredTime: "",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
 
-  const categories = [
-    "Electrical",
-    "Plumbing",
-    "Cleaning",
-    "Security",
-    "Internet",
-    "Other",
-  ];
-
-  const buildings = [
-    "Academic Block A",
-    "Academic Block B",
-    "Academic Block C",
-    "Library",
-    "Hostel Block 1",
-    "Hostel Block 2",
-    "Hostel Block 3",
-    "Canteen",
-    "Sports Complex",
-    "Administrative Block",
-  ];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -60,13 +51,9 @@ export default function ComplaintForm() {
 
     try {
       const user = auth.currentUser;
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
+      if (!user) throw new Error("User not authenticated");
 
       let imageUrl = "";
-
-      // Upload image if selected
       if (selectedFile) {
         const imageRef = ref(storage, `complaints/${user.uid}/${Date.now()}_${selectedFile.name}`);
         await uploadBytes(imageRef, selectedFile);
@@ -86,15 +73,16 @@ export default function ComplaintForm() {
 
       setSubmitMessage("Complaint submitted successfully!");
       setFormData({
-        building: "",
-        room: "",
-        category: "",
         title: "",
+        location: "",
+        contactNumber: "",
         description: "",
+        category: "",
+        preferredDate: "",
+        preferredTime: "",
       });
       setSelectedFile(null);
 
-      // Clear success message after 3 seconds
       setTimeout(() => setSubmitMessage(""), 3000);
     } catch (error) {
       console.error("Error submitting complaint:", error);
@@ -107,61 +95,83 @@ export default function ComplaintForm() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">
-          Submit New Complaint
-        </h2>
-
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">Submit New Complaint</h2>
+        <p className="text-gray-600 mb-6">
+          Please provide detailed information about your maintenance request to help us assist you better.
+        </p>
         {submitMessage && (
-          <div className={`mb-4 p-3 rounded-lg ${
-            submitMessage.includes("successfully")
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}>
+          <div
+            className={`mb-4 p-3 rounded-lg ${
+              submitMessage.includes("successfully")
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
             {submitMessage}
           </div>
         )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Building */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Building *
-              </label>
-              <select
-                name="building"
-                value={formData.building}
-                onChange={handleInputChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Building</option>
-                {buildings.map((building) => (
-                  <option key={building} value={building}>
-                    {building}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Room */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Room Number *
-              </label>
-              <input
-                type="text"
-                name="room"
-                value={formData.room}
-                onChange={handleInputChange}
-                placeholder="e.g., 101, Lab 201"
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Complaint Title *
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              placeholder="Brief description of the issue..."
+              required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
-
-          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Location *
+            </label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              placeholder="e.g. Room 201, Main Building, Hostel Block A..."
+              required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Contact Number *
+            </label>
+            <input
+              type="text"
+              name="contactNumber"
+              value={formData.contactNumber}
+              onChange={handleInputChange}
+              placeholder="Your mobile number for updates..."
+              required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              pattern="[0-9]{10,15}"
+              maxLength={15}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Detailed Description *
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Please provide a detailed description of the problem, including when it started, severity, and any other relevant information..."
+              rows={4}
+              required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <span className="text-xs text-gray-500 mt-1 block">
+              The more details you provide, the faster we can resolve your issue.
+            </span>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Category *
@@ -173,48 +183,40 @@ export default function ComplaintForm() {
               required
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select Category</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
+              <option value="">Select a category</option>
+              {CATEGORY_OPTIONS.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.icon} {cat.label}
                 </option>
               ))}
             </select>
           </div>
-
-          {/* Complaint Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Complaint Title *
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              placeholder="Brief title for your complaint"
-              required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Preferred Date
+              </label>
+              <input
+                type="date"
+                name="preferredDate"
+                value={formData.preferredDate}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Preferred Time
+              </label>
+              <input
+                type="time"
+                name="preferredTime"
+                value={formData.preferredTime}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
           </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description *
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Detailed description of the issue..."
-              rows={4}
-              required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Upload Image (Optional)
@@ -231,19 +233,38 @@ export default function ComplaintForm() {
               </p>
             )}
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${
-              isSubmitting
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Complaint"}
-          </button>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({
+                  title: "",
+                  location: "",
+                  contactNumber: "",
+                  description: "",
+                  category: "",
+                  preferredDate: "",
+                  preferredTime: "",
+                });
+                setSelectedFile(null);
+              }}
+              className="w-full py-3 px-6 rounded-lg text-gray-700 font-semibold bg-gray-200 hover:bg-gray-300 transition-colors"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${
+                isSubmitting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Complaint"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
