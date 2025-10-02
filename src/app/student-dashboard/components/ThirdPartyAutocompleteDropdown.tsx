@@ -1,5 +1,5 @@
 import React from "react";
-import Select from "react-select";
+import Select, { SingleValue } from "react-select";
 
 interface Option {
   value: string;
@@ -25,7 +25,7 @@ const ThirdPartyAutocompleteDropdown: React.FC<ThirdPartyAutocompleteDropdownPro
 }) => {
   const selectedOption = options.find((opt) => opt.value === value) || null;
 
-  const handleChange = (selected: any) => {
+  const handleChange = (selected: SingleValue<Option>) => {
     onChange(selected ? selected.value : "");
   };
 
