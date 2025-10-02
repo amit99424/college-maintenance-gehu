@@ -23,7 +23,8 @@ interface MenuItem {
 }
 
 export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Removed unused state to fix lint warning
+  // const [isCollapsed, setIsCollapsed] = useState(false);
 
   const menuItems: MenuItem[] = [
     {
@@ -68,7 +69,7 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
 
       <div
         className={`fixed top-0 left-0 h-full bg-white shadow-lg transition-transform duration-300 z-50
-          ${isCollapsed ? "w-16" : "w-64"}
+          w-64
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           md:static md:w-64 md:translate-x-0
           md:border-r md:border-gray-200
@@ -78,17 +79,12 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
       >
         {/* Header */}
         <div className="p-4 border-b flex flex-col items-start justify-between space-y-1">
-          {!isCollapsed && (
-            <>
-              <h2 className="text-lg font-semibold text-gray-800 truncate max-w-[12rem]">
-                {userData.name || "Student"}
-              </h2>
-              <p className="text-sm text-gray-600 truncate max-w-[12rem]">
-                {userData.department || "Department"}
-              </p>
-            </>
-          )}
-          {/* Removed the back button toggle here */}
+          <h2 className="text-lg font-semibold text-gray-800 truncate max-w-[12rem]">
+            {userData.name || "Student"}
+          </h2>
+          <p className="text-sm text-gray-600 truncate max-w-[12rem]">
+            {userData.department || "Department"}
+          </p>
         </div>
 
         {/* Navigation */}
@@ -104,18 +100,16 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
               }`}
             >
               <span className="text-xl mr-3">{item.icon}</span>
-              {!isCollapsed && <span className="font-medium">{item.label}</span>}
+              <span className="font-medium">{item.label}</span>
             </button>
           ))}
         </nav>
 
         {/* Footer */}
         <div className="absolute bottom-4 left-4 right-4">
-          {!isCollapsed && (
-            <div className="text-xs text-gray-500">
-              College Maintenance System
-            </div>
-          )}
+          <div className="text-xs text-gray-500">
+            College Maintenance System
+          </div>
         </div>
       </div>
     </>
