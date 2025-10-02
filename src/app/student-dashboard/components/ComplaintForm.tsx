@@ -10,7 +10,8 @@ import ThirdPartyAutocompleteDropdown from "./ThirdPartyAutocompleteDropdown";
 
 interface RoomData {
   "Building Name"?: string;
-  "Room No.": string;
+  "Room No."?: string;
+  "Room No"?: string;
   "Lab/Room Name"?: string;
   "Hostel"?: string;
   "Floor/Block"?: string;
@@ -150,11 +151,22 @@ export default function ComplaintForm() {
       : (item["Building Name"] || "").trim() === formData.building.trim()
   );
 
-  const roomOptions = filteredRooms.map((item) => ({
-    value: item["Room No."],
-    label: item["Room No."],
-    icon: "🚪",
-  }));
+  const roomOptions = filteredRooms
+    .filter((item) => (item["Room No."] || item["Room No"]) !== undefined)
+    .map((item) => {
+      const roomNo = item["Room No."] || item["Room No"] || "";
+      let labelSuffix = "";
+      if (isHostel) {
+        labelSuffix = item["Floor/Block"] ? ` - ${item["Floor/Block"]}` : "";
+      } else {
+        labelSuffix = item["Lab/Room Name"] ? ` - ${item["Lab/Room Name"]}` : "";
+      }
+      return {
+        value: roomNo,
+        label: `${roomNo}${labelSuffix}`,
+        icon: "🚪",
+      };
+    });
 
   const handleBuildingChange = (value: string) => {
     setFormData((prev) => ({
@@ -176,10 +188,14 @@ export default function ComplaintForm() {
     const fetchRoomData = async () => {
       try {
         const response = await fetch('/ROOMSTORE.JSON');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data: RoomData[] = await response.json();
         setRoomData(data);
       } catch (error) {
         console.error('Error fetching room data:', error);
+        setRoomData([]); // clear room data on error
       }
     };
     fetchRoomData();
@@ -311,19 +327,21 @@ export default function ComplaintForm() {
               name="building"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Room *
-            </label>
-            <EnhancedDropdown
-              value={formData.room}
-              onChange={handleRoomChange}
-              options={roomOptions}
-              placeholder="Select or type a room"
-              required
-              name="room"
-            />
-          </div>
+          {formData.building && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Room *
+              </label>
+              <EnhancedDropdown
+                value={formData.room}
+                onChange={handleRoomChange}
+                options={roomOptions}
+                placeholder="Select or type a room"
+                required
+                name="room"
+              />
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Detailed Description *

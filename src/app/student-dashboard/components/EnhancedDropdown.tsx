@@ -108,7 +108,7 @@ const EnhancedDropdown: React.FC<EnhancedDropdownProps> = ({
         </ul>
       )}
       {/* Hidden input for form validation */}
-      <input type="hidden" name={name} value={value} required={required} />
+      <input type="hidden" name={name} value={value || ""} required={required} />
     </div>
   );
 };
