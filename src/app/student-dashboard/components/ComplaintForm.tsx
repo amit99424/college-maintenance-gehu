@@ -4,6 +4,18 @@ import { useState, useRef, useEffect } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "@/firebase/config";
+import SelectDropdown from "./SelectDropdown";
+import EnhancedDropdown from "./EnhancedDropdown";
+import ThirdPartyAutocompleteDropdown from "./ThirdPartyAutocompleteDropdown";
+
+interface RoomData {
+  "Building Name"?: string;
+  "Room No.": string;
+  "Lab/Room Name"?: string;
+  "Hostel"?: string;
+  "Floor/Block"?: string;
+  "Room Type"?: string;
+}
 
 // Category icons (replace with your preferred set or SVGs)
 const CATEGORY_OPTIONS = [
@@ -81,7 +93,8 @@ function CustomDropdown({ value, onChange, options, placeholder, required }: Cus
           tabIndex={-1}
           role="listbox"
           aria-activedescendant={value}
-          className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-gray-300"
+          style={{ boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}
         >
           {options.map((option) => (
             <li
@@ -109,6 +122,8 @@ function CustomDropdown({ value, onChange, options, placeholder, required }: Cus
 }
 
 export default function ComplaintForm() {
+  // Import roomStore.json data
+  const [roomData, setRoomData] = useState<RoomData[]>([]);
   const [formData, setFormData] = useState({
     title: "",
     building: "",
@@ -118,6 +133,57 @@ export default function ComplaintForm() {
     preferredDate: "",
     preferredTime: "",
   });
+
+  // Extract unique building names from roomData with trimming
+  const buildingOptions = Array.from(
+    new Set(roomData.map((item) => (item["Building Name"] || item["Hostel"] || "").trim()))
+  )
+    .filter((b) => b !== "")
+    .map((b) => ({ value: b, label: b, icon: "🏢" }));
+
+  // Filter rooms based on selected building or hostel with trimming
+  const isHostel = roomData.some((item) => (item["Hostel"] || "").trim() === formData.building.trim());
+
+  const filteredRooms = roomData.filter((item) =>
+    isHostel
+      ? (item["Hostel"] || "").trim() === formData.building.trim()
+      : (item["Building Name"] || "").trim() === formData.building.trim()
+  );
+
+  const roomOptions = filteredRooms.map((item) => ({
+    value: item["Room No."],
+    label: item["Room No."],
+    icon: "🚪",
+  }));
+
+  const handleBuildingChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      building: value,
+      room: "", // reset room when building changes
+    }));
+  };
+
+  const handleRoomChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      room: value,
+    }));
+  };
+
+  // Fetch roomStore.json data on component mount
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      try {
+        const response = await fetch('/ROOMSTORE.JSON');
+        const data: RoomData[] = await response.json();
+        setRoomData(data);
+      } catch (error) {
+        console.error('Error fetching room data:', error);
+      }
+    };
+    fetchRoomData();
+  }, []);
 
   const handleCategoryChange = (value: string) => {
     setFormData((prev) => ({
@@ -236,29 +302,27 @@ export default function ComplaintForm() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Building *
             </label>
-            <input
-              type="text"
-              name="building"
+            <EnhancedDropdown
               value={formData.building}
-              onChange={handleInputChange}
-              placeholder="e.g. Main Building, Hostel Block A..."
+              onChange={handleBuildingChange}
+              options={buildingOptions}
+              placeholder="Select or type a building"
               required
-              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              name="building"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Room *
             </label>
-            <input
-              type="text"
-              name="room"
+            <EnhancedDropdown
               value={formData.room}
-              onChange={handleInputChange}
-              placeholder="e.g. Room 201"
+              onChange={handleRoomChange}
+              options={roomOptions}
+              placeholder="Select or type a room"
               required
-              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              name="room"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -281,12 +345,13 @@ export default function ComplaintForm() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Category *
             </label>
-            <CustomDropdown
+            <ThirdPartyAutocompleteDropdown
               value={formData.category}
               onChange={handleCategoryChange}
               options={CATEGORY_OPTIONS}
-              placeholder="Select a category"
+              placeholder="Select or type a category"
               required
+              name="category"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">

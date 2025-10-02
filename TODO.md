@@ -1,8 +1,11 @@
-# Make Student Dashboard Responsive
+# TODO for Student Dashboard Dropdowns
 
-## Tasks
-- [x] Update page.tsx for responsive layout with mobile sidebar toggle
-- [x] Modify Sidebar.tsx to support overlay mode on mobile
-- [x] Adjust ComplaintForm.tsx for better mobile stacking
-- [ ] Test responsiveness on different screen sizes
-- [ ] Run the app to verify changes
+- [ ] Fetch roomStore.json data in ComplaintForm.tsx
+- [ ] Extract unique building options from data
+- [ ] Create building dropdown using CustomDropdown component
+- [ ] Add state for selected building and rooms
+- [ ] Create room dropdown filtered by selected building
+- [ ] Replace building text input with dropdown
+- [ ] Replace room text input with dropdown
+- [ ] Update form data handling for dropdowns
+- [ ] Test the form functionality
