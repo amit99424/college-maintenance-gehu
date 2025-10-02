@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "@/firebase/config";
@@ -12,18 +12,119 @@ const CATEGORY_OPTIONS = [
   { value: "Cleaning", label: "Cleaning", icon: "🧹" },
   { value: "Internet", label: "Internet", icon: "🌐" },
   { value: "Security", label: "Security", icon: "🔒" },
+  { value: "Other", label: "Other", icon: "❓" },
 ];
+
+// Custom Dropdown component for category selection
+interface CategoryOption {
+  value: string;
+  label: string;
+  icon: string;
+}
+
+interface CustomDropdownProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: CategoryOption[];
+  placeholder: string;
+  required?: boolean;
+}
+
+function CustomDropdown({ value, onChange, options, placeholder, required }: CustomDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const selectedOption = options.find((opt: CategoryOption) => opt.value === value);
+
+  const toggleDropdown = () => setIsOpen((prev) => !prev);
+
+  const handleOptionClick = (val: string) => {
+    onChange(val);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={toggleDropdown}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        className={`w-full p-3 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+          required && !value ? "border-red-500" : ""
+        }`}
+      >
+        {selectedOption ? (
+          <span className="text-gray-700">
+            <span className="mr-2">{selectedOption.icon}</span>
+            {selectedOption.label}
+          </span>
+        ) : (
+          <span className="text-gray-400">{placeholder}</span>
+        )}
+      </button>
+      {isOpen && (
+        <ul
+          tabIndex={-1}
+          role="listbox"
+          aria-activedescendant={value}
+          className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+        >
+          {options.map((option) => (
+            <li
+              key={option.value}
+              id={option.value}
+              role="option"
+              aria-selected={value === option.value}
+              onClick={() => handleOptionClick(option.value)}
+              className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-600 hover:text-white ${
+                value === option.value ? "font-semibold bg-blue-600 text-white" : "text-gray-900"
+              }`}
+            >
+              <span className="flex items-center">
+                <span className="mr-2">{option.icon}</span>
+                {option.label}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {/* Hidden input for form validation */}
+      <input type="hidden" name="category" value={value} required={required} />
+    </div>
+  );
+}
 
 export default function ComplaintForm() {
   const [formData, setFormData] = useState({
     title: "",
-    location: "",
-    contactNumber: "",
+    building: "",
+    room: "",
     description: "",
     category: "",
     preferredDate: "",
     preferredTime: "",
   });
+
+  const handleCategoryChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      category: value,
+    }));
+  };
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
@@ -62,7 +163,13 @@ export default function ComplaintForm() {
 
       // Add complaint to Firestore
       await addDoc(collection(db, "complaints"), {
-        ...formData,
+        title: formData.title,
+        building: formData.building,
+        room: formData.room,
+        description: formData.description,
+        category: formData.category,
+        preferredDate: formData.preferredDate,
+        preferredTime: formData.preferredTime,
         userId: user.uid,
         userEmail: user.email,
         status: "pending",
@@ -74,8 +181,8 @@ export default function ComplaintForm() {
       setSubmitMessage("Complaint submitted successfully!");
       setFormData({
         title: "",
-        location: "",
-        contactNumber: "",
+        building: "",
+        room: "",
         description: "",
         category: "",
         preferredDate: "",
@@ -122,38 +229,36 @@ export default function ComplaintForm() {
               onChange={handleInputChange}
               placeholder="Brief description of the issue..."
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Location *
+              Building *
             </label>
             <input
               type="text"
-              name="location"
-              value={formData.location}
+              name="building"
+              value={formData.building}
               onChange={handleInputChange}
-              placeholder="e.g. Room 201, Main Building, Hostel Block A..."
+              placeholder="e.g. Main Building, Hostel Block A..."
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contact Number *
+              Room *
             </label>
             <input
               type="text"
-              name="contactNumber"
-              value={formData.contactNumber}
+              name="room"
+              value={formData.room}
               onChange={handleInputChange}
-              placeholder="Your mobile number for updates..."
+              placeholder="e.g. Room 201"
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              pattern="[0-9]{10,15}"
-              maxLength={15}
-            />
+              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -163,10 +268,10 @@ export default function ComplaintForm() {
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="Please provide a detailed description of the problem, including when it started, severity, and any other relevant information..."
+              placeholder="Please provide a detailed description of the problem.."
               rows={4}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <span className="text-xs text-gray-500 mt-1 block">
               The more details you provide, the faster we can resolve your issue.
@@ -176,20 +281,13 @@ export default function ComplaintForm() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Category *
             </label>
-            <select
-              name="category"
+            <CustomDropdown
               value={formData.category}
-              onChange={handleInputChange}
+              onChange={handleCategoryChange}
+              options={CATEGORY_OPTIONS}
+              placeholder="Select a category"
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select a category</option>
-              {CATEGORY_OPTIONS.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.icon} {cat.label}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -201,8 +299,8 @@ export default function ComplaintForm() {
                 name="preferredDate"
                 value={formData.preferredDate}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-700 placeholder-opacity-100 text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -213,8 +311,8 @@ export default function ComplaintForm() {
                 name="preferredTime"
                 value={formData.preferredTime}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-700 placeholder-opacity-100 text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
             </div>
           </div>
           <div>
@@ -225,7 +323,7 @@ export default function ComplaintForm() {
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-700 placeholder-opacity-100 text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             {selectedFile && (
               <p className="mt-2 text-sm text-gray-600">
@@ -234,25 +332,6 @@ export default function ComplaintForm() {
             )}
           </div>
           <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => {
-                setFormData({
-                  title: "",
-                  location: "",
-                  contactNumber: "",
-                  description: "",
-                  category: "",
-                  preferredDate: "",
-                  preferredTime: "",
-                });
-                setSelectedFile(null);
-              }}
-              className="w-full py-3 px-6 rounded-lg text-gray-700 font-semibold bg-gray-200 hover:bg-gray-300 transition-colors"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
             <button
               type="submit"
               disabled={isSubmitting}
