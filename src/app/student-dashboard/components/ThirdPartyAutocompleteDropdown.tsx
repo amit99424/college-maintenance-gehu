@@ -16,8 +16,10 @@ interface ThirdPartyAutocompleteDropdownProps {
   name?: string;
 }
 
+import { CSSObjectWithLabel, GroupBase, OptionProps, SingleValueProps } from "react-select";
+
 // Custom Option component to render icon and label
-const IconOption = (props: any) => {
+const IconOption = (props: OptionProps<Option, false, GroupBase<Option>>) => {
   const { data, innerRef, innerProps, isFocused, isSelected } = props;
   return (
     <div
@@ -39,7 +41,7 @@ const IconOption = (props: any) => {
 };
 
 // Custom SingleValue component to render icon and label in selected value
-const IconSingleValue = (props: any) => {
+const IconSingleValue = (props: SingleValueProps<Option, false>) => {
   const { data } = props;
   return (
     <components.SingleValue {...props}>
