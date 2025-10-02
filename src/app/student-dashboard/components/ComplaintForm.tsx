@@ -289,7 +289,7 @@ export default function ComplaintForm() {
               required
             />
           </div>
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Preferred Date

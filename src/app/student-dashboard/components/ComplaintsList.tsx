@@ -99,13 +99,13 @@ export default function ComplaintsList() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
           <h2 className="text-xl font-semibold text-gray-800">My Complaints</h2>
 
           {/* Filter Buttons */}
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap space-x-2 space-y-2 md:space-y-0">
             {["all", "pending", "in-progress", "resolved"].map((status) => (
               <button
                 key={status}
@@ -147,7 +147,7 @@ export default function ComplaintsList() {
                 key={complaint.id}
                 className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
               >
-                <div className="flex justify-between items-start mb-3">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 space-y-3 md:space-y-0 md:space-x-4">
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 mb-1">
                       {complaint.title}
@@ -182,7 +182,7 @@ export default function ComplaintsList() {
                   </div>
                 )}
 
-                <div className="flex justify-between items-center text-sm text-gray-500">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-sm text-gray-500 space-y-2 md:space-y-0 md:space-x-4">
                   <span>Created: {formatDate(complaint.createdAt)}</span>
                   <span className="font-medium">ID: {complaint.id.slice(0, 8)}...</span>
                 </div>
