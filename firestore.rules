@@ -1,27 +1,15 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users collection - authenticated users can read/write their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    
+    // Complaints collection ke liye
+    match /complaints/{document=**} {
+      allow read, write: if true;
     }
 
-    // Complaints collection - authenticated users can read/write their own complaints
-    match /complaints/{complaintId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    // Allow supervisors and maintenance staff to read all complaints
-    match /complaints/{complaintId} {
-      allow read: if request.auth != null &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['supervisor', 'maintenance', 'staff']);
-    }
-
-    // Allow supervisors to update complaint status
-    match /complaints/{complaintId} {
-      allow update: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['supervisor', 'maintenance'] &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']);
+    // Baaki sab documents ke liye bhi
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
