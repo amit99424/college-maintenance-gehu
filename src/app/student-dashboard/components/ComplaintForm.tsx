@@ -331,14 +331,18 @@ export default function ComplaintForm() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Room *
               </label>
-              <EnhancedDropdown
-                value={formData.room}
-                onChange={handleRoomChange}
-                options={roomOptions}
-                placeholder="Select or type a room"
-                required
-                name="room"
-              />
+              {roomOptions.length > 0 ? (
+                <EnhancedDropdown
+                  value={formData.room}
+                  onChange={handleRoomChange}
+                  options={roomOptions}
+                  placeholder="Select or type a room"
+                  required
+                  name="room"
+                />
+              ) : (
+                <p className="text-gray-500 text-sm italic">No rooms available for the selected building.</p>
+              )}
             </div>
           )}
           <div>
