@@ -60,25 +60,25 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
   return (
     <>
       {/* Overlay for mobile when sidebar is open */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm md:hidden z-10"
-          onClick={() => setIsOpen && setIsOpen(false)}
-        />
-      )}
+{isOpen && (
+  <div
+    className="fixed inset-0 bg-black/40 md:hidden z-10"
+    onClick={() => setIsOpen && setIsOpen(false)}
+  />
+)}
 
-      <div
-        className={`fixed top-0 left-0 h-full bg-white shadow-lg transition-transform duration-300 z-50
-          w-64
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          md:static md:w-64 md:translate-x-0
-          md:border-r md:border-gray-200
-          md:rounded-r-lg
-          md:overflow-hidden
-        `}
-      >
+<div
+  className={`fixed top-0 left-0 h-full bg-white transition-transform duration-300 z-50
+    w-64
+    ${isOpen ? "translate-x-0" : "-translate-x-full"}
+    md:static md:w-64 md:translate-x-0
+    md:border-r md:border-gray-200
+    md:rounded-r-lg
+    md:overflow-hidden
+  `}
+>
         {/* Header */}
-        <div className="p-4 border-b flex flex-col items-start justify-between space-y-1">
+        <div className="p-4 border-b flex flex-col items-start justify-between space-y-1 bg-blue-400">
           <h2 className="text-lg font-semibold text-gray-800 truncate max-w-[12rem]">
             {userData.name || "Student"}
           </h2>
@@ -88,20 +88,26 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
         </div>
 
         {/* Navigation */}
-        <nav className="mt-4">
+        <nav className="mt-4 space-y-3">
           {menuItems.map((item) => (
-            <button
+            <div
               key={item.id}
-              onClick={() => handleMenuItemClick(item.id)}
-              className={`w-full flex items-center px-4 py-3 text-left transition-colors ${
-                activeSection === item.id
-                  ? "bg-blue-100 text-blue-600 border-r-4 border-blue-600"
-                  : "text-gray-700 hover:bg-gray-100"
+              className={`bg-blue-100 rounded-md shadow p-1 ${
+                activeSection === item.id ? "border-2 border-blue-600" : ""
               }`}
             >
-              <span className="text-xl mr-3">{item.icon}</span>
-              <span className="font-medium">{item.label}</span>
-            </button>
+              <button
+                onClick={() => handleMenuItemClick(item.id)}
+                className={`w-full flex items-center px-4 py-3 text-left transition-colors rounded-md ${
+                  activeSection === item.id
+                    ? "bg-blue-100 text-blue-600"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <span className="text-xl mr-3">{item.icon}</span>
+                <span className="font-medium">{item.label}</span>
+              </button>
+            </div>
           ))}
         </nav>
 
