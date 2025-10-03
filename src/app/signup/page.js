@@ -179,14 +179,17 @@ export default function SignupPage() {
                 />
               </>
             )}
-            <input
-              type="date"
-              placeholder="Date of Birth"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              required
-              className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-            />
+            <div>
+              <input
+                id="dob"
+                type="date"
+                placeholder="dd-mm-yyyy"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                required
+                className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+              />
+            </div>
 
             <select
               value={role}
