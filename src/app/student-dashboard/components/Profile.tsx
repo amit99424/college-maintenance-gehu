@@ -14,6 +14,7 @@ interface UserData {
   email?: string;
   role?: string;
   profileImage?: string;
+  dob?: string;
 }
 
 interface ProfileProps {
@@ -24,8 +25,8 @@ export default function Profile({ userData }: ProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     name: userData?.name || "",
-    collegeId: userData?.collegeId || "",
     department: userData?.department || "",
+    dob: userData?.dob || "",
   });
   const [profileImage, setProfileImage] = useState(userData?.profileImage || "");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -94,8 +95,8 @@ export default function Profile({ userData }: ProfileProps) {
   const handleCancel = () => {
     setProfileData({
       name: userData?.name || "",
-      collegeId: userData?.collegeId || "",
       department: userData?.department || "",
+      dob: userData?.dob || "",
     });
     setIsEditing(false);
   };
@@ -150,14 +151,14 @@ export default function Profile({ userData }: ProfileProps) {
           <div className="md:w-2/3 space-y-4">
             {[
               { label: "Full Name", name: "name", value: profileData.name },
-              { label: "College ID", name: "collegeId", value: profileData.collegeId },
               { label: "Department", name: "department", value: profileData.department },
+              { label: "Date of Birth", name: "dob", value: profileData.dob },
             ].map(field => (
               <div key={field.name}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{field.label}</label>
                 {isEditing ? (
                   <input
-                    type="text"
+                    type={field.name === "dob" ? "date" : "text"}
                     name={field.name}
                     value={field.value}
                     onChange={handleInputChange}

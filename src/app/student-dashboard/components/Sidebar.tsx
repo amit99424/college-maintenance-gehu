@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import EnhancedDropdown from "./EnhancedDropdown";
 
 interface UserData {
   name?: string;
@@ -24,9 +25,6 @@ interface MenuItem {
 }
 
 export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen, onLogout }: SidebarProps) {
-  // Removed unused state to fix lint warning
-  // const [isCollapsed, setIsCollapsed] = useState(false);
-
   const menuItems: MenuItem[] = [
     {
       id: "submit-complaint",
@@ -61,23 +59,23 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
   return (
     <>
       {/* Overlay for mobile when sidebar is open */}
-{isOpen && (
-  <div
-    className="fixed inset-0 bg-black/40 md:hidden z-10"
-    onClick={() => setIsOpen && setIsOpen(false)}
-  />
-)}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 md:hidden z-10"
+          onClick={() => setIsOpen && setIsOpen(false)}
+        />
+      )}
 
-<div
-  className={`fixed top-0 left-0 h-full bg-white transition-transform duration-300 z-50
-    w-64
-    ${isOpen ? "translate-x-0" : "-translate-x-full"}
-    md:static md:w-64 md:translate-x-0
-    md:border-r md:border-gray-200
-    md:rounded-r-lg
-    md:overflow-hidden
-  `}
->
+      <div
+        className={`fixed top-0 left-0 h-full bg-white transition-transform duration-300 z-50
+          w-64
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          md:static md:w-64 md:translate-x-0
+          md:border-r md:border-gray-200
+          md:rounded-r-lg
+          md:overflow-hidden
+        `}
+      >
         {/* Header */}
         <div className="p-4 border-b flex flex-col items-start justify-between space-y-1 bg-blue-400">
           <h2 className="text-lg font-semibold text-gray-800 truncate max-w-[12rem]">

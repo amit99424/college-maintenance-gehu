@@ -13,8 +13,9 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [role, setRole] = useState("student");
   const [category, setCategory] = useState("");
-  const [collegeId, setCollegeId] = useState("");
+  // Removed collegeId state as per request
   const [department, setDepartment] = useState("");
+  const [dob, setDob] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,6 +33,10 @@ export default function SignupPage() {
   const validateSignup = () => {
     if (!email || !password) {
       setError("Email and Password are required.");
+      return false;
+    }
+    if (!dob) {
+      setError("Date of Birth is required.");
       return false;
     }
     if (role === "student") {
@@ -85,10 +90,10 @@ export default function SignupPage() {
         role,
         name: name.trim(),
         createdAt: new Date().toISOString(),
+        dob,
       };
 
       if (role !== "staff" && role !== "supervisor" && role !== "maintenance") {
-        userData.collegeId = collegeId.trim();
         userData.department = department.trim();
       }
 
@@ -130,25 +135,25 @@ export default function SignupPage() {
 
       {/* Main Container */}
       <div
-        className="relative z-10 flex flex-col justify-center items-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto"
+        className="relative z-10 flex flex-col justify-center items-center min-h-screen px-4 sm:px-6 lg:px-8 py-8"
         style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "none" }}
       >
-        <div className="w-full max-w-md sm:max-w-sm">
+        <div className="w-full max-w-lg sm:max-w-md mx-4 bg-white/50 rounded-lg shadow-2xl border border-gray-200">
+          {/* Logo Area */}
+          <div className="bg-blue-200 rounded-t-lg p-4 flex justify-center items-center shadow-inner">
+            <Image
+              src="/university-logo.png"
+              alt="University Logo"
+              width={400}
+              height={100}
+              className="w-72 sm:w-96 h-auto"
+              priority
+            />
+          </div>
           <form
             onSubmit={handleSignup}
-            className="flex flex-col gap-4 sm:gap-5 bg-white/50 p-6 sm:p-8 rounded-lg shadow-2xl border border-gray-200"
+            className="flex flex-col gap-4 sm:gap-5 p-6 sm:p-8"
           >
-            {/* Logo */}
-            <div className="flex justify-center mb-3 sm:mb-4">
-              <Image
-                src="https://www.italcoholic.in/wp-content/uploads/2017/01/geu.png"
-                alt="University Logo"
-                width={300}
-                height={60}
-                className="w-48 sm:w-56 md:w-64 lg:w-72 h-auto"
-                priority
-              />
-            </div>
 
             {/* Form Fields */}
             <input
@@ -166,15 +171,6 @@ export default function SignupPage() {
               <>
                 <input
                   type="text"
-                  placeholder="College ID"
-                  value={collegeId}
-                  onChange={(e) => setCollegeId(e.target.value)}
-                  required
-                  className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                />
-
-                <input
-                  type="text"
                   placeholder="Department"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
@@ -183,6 +179,14 @@ export default function SignupPage() {
                 />
               </>
             )}
+            <input
+              type="date"
+              placeholder="Date of Birth"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              required
+              className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+            />
 
             <select
               value={role}

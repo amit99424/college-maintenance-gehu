@@ -26,6 +26,9 @@ export default function StudentDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeSection, setActiveSection] = useState("submit-complaint");
+
+  console.log("DEBUG: userData in StudentDashboard:", userData);
+  console.log("DEBUG: activeSection in StudentDashboard:", activeSection);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();

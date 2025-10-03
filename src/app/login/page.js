@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import Image from "next/image";
@@ -31,6 +31,13 @@ export default function LoginPage() {
   const [showMaintenanceKeyModal, setShowMaintenanceKeyModal] = useState(false);
   const [maintenanceKeyInput, setMaintenanceKeyInput] = useState("");
   const [pendingUser, setPendingUser] = useState(null);
+
+  // forget password modal states
+  const [showForgetPasswordModal, setShowForgetPasswordModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
+  const [resetError, setResetError] = useState("");
 
   const router = useRouter();
 
@@ -215,93 +222,123 @@ export default function LoginPage() {
 
       {/* Main Container */}
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8">
-        <div className="w-full max-w-xs sm:max-w-sm">
+        <div className="w-full max-w-md sm:max-w-lg bg-white/50 rounded-lg shadow-2xl border border-gray-200 overflow-y-auto max-h-[90vh]">
+          {/* Logo Area */}
+          <div className="bg-blue-200 rounded-t-lg p-4 flex justify-center items-center shadow-inner">
+            <Image
+              src="/university-logo.png"
+              alt="University Logo"
+              width={400}
+              height={100}
+              className="w-72 sm:w-96 h-auto"
+              priority
+            />
+          </div>
           <form
             onSubmit={handleLogin}
-            className="flex flex-col gap-4 sm:gap-5 bg-white/50 p-4 sm:p-6 md:p-8 rounded-lg shadow-2xl border border-gray-200 overflow-y-auto max-h-[90vh]"
+            className="flex flex-col gap-4 sm:gap-5 p-4 sm:p-6 md:p-8"
           >
-            {/* Logo */}
-            <div className="flex justify-center mb-3 sm:mb-4">
-              <Image
-                src="https://www.italcoholic.in/wp-content/uploads/2017/01/geu.png"
-                alt="University Logo"
-                width={300}
-                height={60}
-                className="w-48 sm:w-56 md:w-64 lg:w-72 h-auto"
-                priority
+
+            {/* Email */}
+            <div className="relative w-full">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M10 10a4 4 0 100-8 4 4 0 000 8zm-6 8a6 6 0 1112 0H4z" />
+                </svg>
+              </span>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full pl-10 p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               />
             </div>
 
-            {/* Email */}
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-            />
-
             {/* Password */}
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-            />
+            <div className="relative w-full">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 11c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M17 11v2a5 5 0 01-10 0v-2"
+                  />
+                </svg>
+              </span>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full pl-10 p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+              />
+            </div>
 
-            {/* Captcha */}
-            <div className="space-y-2">
-              <label className="text-xs sm:text-sm font-medium text-gray-900">
-                Captcha
-              </label>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                <div className="relative flex items-center w-full sm:w-auto">
-                  {/* Refresh Button */}
+              {/* Captcha */}
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-medium text-gray-900">
+                  Captcha
+                </label>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={handleCaptchaRefresh}
                     disabled={refreshingCaptcha}
-                    className={`absolute left-2 z-10 w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 transition-all duration-200 ${
+                    className={`flex items-center justify-center w-10 h-10 rounded border-2 transition-all duration-200 ${
                       refreshingCaptcha
                         ? "border-gray-300 bg-gray-200 cursor-not-allowed"
-                        : "border-blue-500 bg-white hover:bg-blue-50 cursor-pointer"
-                    } flex items-center justify-center`}
+                        : "border-green-500 bg-white hover:bg-green-50 cursor-pointer"
+                    }`}
                     style={{
                       background: refreshingCaptcha
                         ? "#f3f4f6"
-                        : "linear-gradient(45deg, #3b82f6, #06b6d4)",
+                        : "linear-gradient(45deg, #10b981, #06b6d4)",
                       border: refreshingCaptcha
                         ? "2px solid #d1d5db"
-                        : "2px solid #3b82f6",
+                        : "2px solid #10b981",
                     }}
                   >
                     <svg
-                      className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
+                      className={`w-6 h-6 transition-transform duration-200 ${
                         refreshingCaptcha ? "animate-spin" : ""
                       }`}
                       fill="none"
                       stroke="currentColor"
+                      strokeWidth="2"
                       viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                       />
                     </svg>
                   </button>
-
-                  {/* Captcha Display */}
                   <div
-                    className="text-lg sm:text-xl font-bold tracking-widest px-4 sm:px-5 py-2 sm:py-3 rounded-lg min-w-[100px] sm:min-w-[315px] text-center shadow-lg text-white relative overflow-hidden w-full sm:w-auto select-none"
+                    className="text-lg font-bold tracking-widest px-4 py-2 rounded min-w-[100px] text-center shadow-lg text-white select-none"
                     style={{
-                      background: refreshingCaptcha
-                        ? "#e5e7eb"
-                        : "linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #8b5cf6 100%)",
+                      background: "linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #8b5cf6 100%)",
                       border: "2px solid transparent",
                       boxShadow:
                         "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
@@ -311,30 +348,23 @@ export default function LoginPage() {
                       msUserSelect: "none",
                     }}
                   >
-                    <div className="absolute inset-0 opacity-20">
-                      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent"></div>
-                    </div>
-                    <span className="relative z-10">
-                      {refreshingCaptcha ? "..." : captcha || "------"}
-                    </span>
+                    {refreshingCaptcha ? "..." : captcha || "------"}
                   </div>
                 </div>
+                <input
+                  type="text"
+                  placeholder="Enter Captcha"
+                  value={captchaInput}
+                  onChange={(e) => setCaptchaInput(e.target.value)}
+                  required
+                  className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-gray-900"
+                />
+                {captchaError && (
+                  <p className="text-xs sm:text-sm text-red-600 font-medium">
+                    {captchaError}
+                  </p>
+                )}
               </div>
-              {captchaError && (
-                <p className="text-xs sm:text-sm text-red-600 font-medium">
-                  {captchaError}
-                </p>
-              )}
-              <input
-                type="text"
-                placeholder="Enter the captcha text above"
-                value={captchaInput}
-                onChange={(e) => setCaptchaInput(e.target.value)}
-                required
-                className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-              />
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"
@@ -347,7 +377,23 @@ export default function LoginPage() {
             >
               {isLoading ? "Processing..." : "LOGIN"}
             </button>
-
+            {/* Add Forget Password Button here */}
+            {/* Removed Forget Password Button */}
+            {/* <div className="text-right mt-2 mb-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setResetEmail(email);
+                  setResetMessage("");
+                  setResetError("");
+                  setShowForgetPasswordModal(true);
+                }}
+                className="text-sm text-blue-600 hover:underline focus:outline-none"
+              >
+                Forget Password?
+              </button>
+            </div> */}
+            {/* Sign Up Text */}
             <p className="text-center text-xs sm:text-sm text-gray-600">
               Don&apos;t have an account?{" "}
               <button
@@ -391,13 +437,25 @@ export default function LoginPage() {
             </button>
             <button
               onClick={handleMaintenanceKeySubmit}
-              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-500 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
+              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-5
+              00 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
             >
               Submit
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Forget Password Modal */}
+      {/* Removed Forget Password Modal */}
+      {/* <Dialog
+        open={showForgetPasswordModal}
+        onOpenChange={setShowForgetPasswordModal}
+      >
+        <DialogContent className="p-4 sm:p-6 rounded-lg shadow-lg bg-white/90 text-gray-900 max-w-[95vw] sm:max-w-sm mx-auto mt-10 sm:mt-20 relative">
+          <ForgotPassword />
+        </DialogContent>
+      </Dialog> */}
     </div>
   );
 }

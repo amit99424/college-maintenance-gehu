@@ -6,6 +6,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "@/firebase/config";
 import EnhancedDropdown from "./EnhancedDropdown";
 import ThirdPartyAutocompleteDropdown from "./ThirdPartyAutocompleteDropdown";
+import SelectDropdown from "./SelectDropdown";
 
 interface RoomData {
   "Building Name"?: string;
@@ -392,13 +393,26 @@ export default function ComplaintForm() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Preferred Time
               </label>
-              <input
-                type="time"
+              <SelectDropdown
                 name="preferredTime"
                 value={formData.preferredTime}
-                onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-700 placeholder-opacity-100 text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, preferredTime: value }))
+                }
+                options={[
+                  { value: "09:00-10:00", label: "09:00 AM - 10:00 AM" },
+                  { value: "10:00-11:00", label: "10:00 AM - 11:00 AM" },
+                  { value: "11:00-12:00", label: "11:00 AM - 12:00 PM" },
+                  { value: "12:00-13:00", label: "12:00 PM - 01:00 PM" },
+                  { value: "13:00-14:00", label: "01:00 PM - 02:00 PM" },
+                  { value: "14:00-15:00", label: "02:00 PM - 03:00 PM" },
+                  { value: "15:00-16:00", label: "03:00 PM - 04:00 PM" },
+                  { value: "16:00-17:00", label: "04:00 PM - 05:00 PM" },
+                  { value: "17:00-18:00", label: "05:00 PM - 06:00 PM" },
+                ]}
+                placeholder="Select a time slot"
+                required={false}
+              />
             </div>
           </div>
           <div>
