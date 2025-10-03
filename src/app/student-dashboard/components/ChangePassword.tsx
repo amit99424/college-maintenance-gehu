@@ -57,14 +57,24 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
       if (onSuccess) {
         setTimeout(() => onSuccess(), 2000);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Password change error:", error);
-      if (error.code === "auth/wrong-password") {
-        setError("Current password is incorrect.");
-      } else if (error.code === "auth/weak-password") {
-        setError("New password is too weak.");
-      } else if (error.code === "auth/requires-recent-login") {
-        setError("Please log in again to change your password.");
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        typeof (error as { code?: string }).code === "string"
+      ) {
+        const errorCode = (error as { code: string }).code;
+        if (errorCode === "auth/wrong-password") {
+          setError("Current password is incorrect.");
+        } else if (errorCode === "auth/weak-password") {
+          setError("New password is too weak.");
+        } else if (errorCode === "auth/requires-recent-login") {
+          setError("Please log in again to change your password.");
+        } else {
+          setError("Failed to change password. Please try again.");
+        }
       } else {
         setError("Failed to change password. Please try again.");
       }
