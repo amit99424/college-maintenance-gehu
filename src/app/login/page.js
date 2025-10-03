@@ -222,9 +222,9 @@ export default function LoginPage() {
 
       {/* Main Container */}
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8">
-        <div className="w-full max-w-md sm:max-w-lg bg-white/50 rounded-lg shadow-2xl border border-gray-200 overflow-y-auto max-h-[90vh]">
+        <div className="w-[90%] sm:w-full max-w-md bg-white/20 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-y-auto max-h-[90vh] animate-fadeInZoom">
           {/* Logo Area */}
-          <div className="bg-blue-200 rounded-t-lg p-4 flex justify-center items-center shadow-inner">
+          <div className="bg-blue-200 rounded-t-2xl p-4 flex justify-center items-center shadow-inner">
             <Image
               src="/university-logo.png"
               alt="University Logo"
@@ -233,6 +233,11 @@ export default function LoginPage() {
               className="w-72 sm:w-96 h-auto"
               priority
             />
+          </div>
+          {/* Heading */}
+          <div className="text-center px-4 sm:px-6 md:px-8 pt-4">
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Login to Your Account</h1>
+            <p className="text-sm text-gray-500">Welcome back! Please sign in to continue.</p>
           </div>
           <form
             onSubmit={handleLogin}
@@ -257,7 +262,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full pl-10 p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                className="w-full pl-10 p-3 text-sm sm:text-base rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:shadow-lg focus:shadow-blue-400/50 bg-white/90 text-gray-900 shadow-md transition-all duration-300"
               />
             </div>
 
@@ -290,7 +295,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full pl-10 p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                className="w-full pl-10 p-3 text-sm sm:text-base rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:shadow-lg focus:shadow-blue-400/50 bg-white/90 text-gray-900 shadow-md transition-all duration-300"
               />
             </div>
 
@@ -357,7 +362,7 @@ export default function LoginPage() {
                   value={captchaInput}
                   onChange={(e) => setCaptchaInput(e.target.value)}
                   required
-                  className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-gray-900"
+                  className="w-full p-3 text-sm sm:text-base rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:shadow-lg focus:shadow-green-400/50 bg-white/90 text-gray-900 shadow-md transition-all duration-300"
                 />
                 {captchaError && (
                   <p className="text-xs sm:text-sm text-red-600 font-medium">
@@ -408,43 +413,35 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Maintenance Key Modal */}
-      <Dialog
-        open={showMaintenanceKeyModal}
-        onOpenChange={setShowMaintenanceKeyModal}
-      >
-        <DialogContent className="p-4 sm:p-6 rounded-lg shadow-lg bg-white max-w-[95vw] sm:max-w-sm mx-auto mt-10 sm:mt-20 relative">
-          <DialogHeader>
-            <DialogTitle className="text-sm sm:text-base">
-              Enter Maintenance Key
-            </DialogTitle>
-          </DialogHeader>
-
-          <input
-            type="password"
-            placeholder="Enter Key"
-            value={maintenanceKeyInput}
-            onChange={(e) => setMaintenanceKeyInput(e.target.value)}
-            className="w-full p-3 mt-4 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <DialogFooter className="flex justify-end gap-2 mt-4 flex-wrap sm:flex-nowrap">
-            <button
-              onClick={() => setShowMaintenanceKeyModal(false)}
-              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleMaintenanceKeySubmit}
-              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-5
-              00 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
-            >
-              Submit
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Maintenance Key Inline Input */}
+      {showMaintenanceKeyModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
+            <h3 className="text-sm sm:text-base font-semibold mb-4">Enter Maintenance Key</h3>
+            <input
+              type="password"
+              placeholder="Enter Key"
+              value={maintenanceKeyInput}
+              onChange={(e) => setMaintenanceKeyInput(e.target.value)}
+              className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex justify-end gap-2 mt-4 flex-wrap sm:flex-nowrap">
+              <button
+                onClick={() => setShowMaintenanceKeyModal(false)}
+                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMaintenanceKeySubmit}
+                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Forget Password Modal */}
       {/* Removed Forget Password Modal */}
