@@ -79,7 +79,7 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
         {/* Header */}
         <div className="p-4 border-b flex flex-col items-start justify-between space-y-1 bg-blue-400">
           <h2 className="text-lg font-semibold text-gray-800 truncate max-w-[12rem]">
-            {userData.name || "Student"}
+            {userData.name || "Staff"}
           </h2>
           <p className="text-sm text-gray-600 truncate max-w-[12rem]">
             {userData.department || "Department"}

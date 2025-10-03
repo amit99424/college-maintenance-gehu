@@ -4,9 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "@/firebase/config";
-import EnhancedDropdown from "./EnhancedDropdown";
-import ThirdPartyAutocompleteDropdown from "./ThirdPartyAutocompleteDropdown";
-import SelectDropdown from "./SelectDropdown";
+import EnhancedDropdown from "../student-dashboard/components/EnhancedDropdown";
+import ThirdPartyAutocompleteDropdown from "../student-dashboard/components/ThirdPartyAutocompleteDropdown";
+import SelectDropdown from "../student-dashboard/components/SelectDropdown";
 
 interface RoomData {
   "Building Name"?: string;
@@ -122,7 +122,11 @@ function CustomDropdown({ value, onChange, options, placeholder, required }: Cus
   );
 }
 
-export default function ComplaintForm() {
+interface ComplaintFormProps {
+  hidePreferredDateTime?: boolean;
+}
+
+export default function ComplaintForm({ hidePreferredDateTime }: ComplaintFormProps) {
   // Import roomStore.json data
   const [roomData, setRoomData] = useState<RoomData[]>([]);
   const [formData, setFormData] = useState({
@@ -210,6 +214,7 @@ export default function ComplaintForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -261,6 +266,7 @@ export default function ComplaintForm() {
       });
 
       setSubmitMessage("Complaint submitted successfully!");
+      setShowSuccessModal(true);
       setFormData({
         title: "",
         building: "",
@@ -299,6 +305,59 @@ export default function ComplaintForm() {
             {submitMessage}
           </div>
         )}
+
+{showSuccessModal && (
+  <div className="fixed inset-0 flex items-center justify-center bg-transparent bg-opacity-50 z-50">
+    <div className="bg-black rounded-lg p-6 max-w-sm w-full shadow-lg relative">
+      <button
+        onClick={() => setShowSuccessModal(false)}
+        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+        aria-label="Close modal"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h3 className="text-lg font-extrabold mb-4 text-green-700">Complaint Submitted Successfully!</h3>
+      <div className="text-left space-y-2 mb-6">
+        <p><span className="font-semibold">Subject:</span> {formData.title || "-"}</p>
+        <p><span className="font-semibold">Category:</span> {formData.category || "-"}</p>
+        <p><span className="font-semibold">Priority:</span> Low</p>
+        <p><span className="font-semibold">Building:</span> {formData.building || "-"}</p>
+        <p>
+          <span className="font-semibold">Location:</span> {formData.room || "-"}{" "}
+          {(() => {
+            const roomObj = roomData.find(
+              (item) =>
+                (item["Room No."] === formData.room || item["Room No"] === formData.room) &&
+                ((item["Building Name"] || item["Hostel"]) === formData.building)
+            );
+            if (roomObj) {
+              if (roomObj["Hostel"]) {
+                return `(Hostel Room - ${roomObj["Floor/Block"] || "Unknown Floor"})`;
+              } else {
+                return `(${roomObj["Lab/Room Name"] || "Unknown Room"})`;
+              }
+            }
+            return "";
+          })()}
+        </p>
+        <p>
+          <span className="font-semibold">Status:</span>{" "}
+          <span className="inline-block bg-blue-200 text-blue-800 rounded-full px-3 py-1 text-sm font-semibold">
+            Pending
+          </span>
+        </p>
+      </div>
+      <button
+        onClick={() => setShowSuccessModal(false)}
+        className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -376,45 +435,47 @@ export default function ComplaintForm() {
               name="category"
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Date
-              </label>
-              <input
-                type="date"
-                name="preferredDate"
-                value={formData.preferredDate}
-                onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-700 placeholder-opacity-100 text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+          {!hidePreferredDateTime && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Preferred Date
+                </label>
+                <input
+                  type="date"
+                  name="preferredDate"
+                  value={formData.preferredDate}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-700 placeholder-opacity-100 text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Preferred Time
+                </label>
+                <SelectDropdown
+                  name="preferredTime"
+                  value={formData.preferredTime}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, preferredTime: value }))
+                  }
+                  options={[
+                    { value: "09:00-10:00", label: "09:00 AM - 10:00 AM" },
+                    { value: "10:00-11:00", label: "10:00 AM - 11:00 AM" },
+                    { value: "11:00-12:00", label: "11:00 AM - 12:00 PM" },
+                    { value: "12:00-13:00", label: "12:00 PM - 01:00 PM" },
+                    { value: "13:00-14:00", label: "01:00 PM - 02:00 PM" },
+                    { value: "14:00-15:00", label: "02:00 PM - 03:00 PM" },
+                    { value: "15:00-16:00", label: "03:00 PM - 04:00 PM" },
+                    { value: "16:00-17:00", label: "04:00 PM - 05:00 PM" },
+                    { value: "17:00-18:00", label: "05:00 PM - 06:00 PM" },
+                  ]}
+                  placeholder="Select a time slot"
+                  required={false}
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Time
-              </label>
-              <SelectDropdown
-                name="preferredTime"
-                value={formData.preferredTime}
-                onChange={(value) =>
-                  setFormData((prev) => ({ ...prev, preferredTime: value }))
-                }
-                options={[
-                  { value: "09:00-10:00", label: "09:00 AM - 10:00 AM" },
-                  { value: "10:00-11:00", label: "10:00 AM - 11:00 AM" },
-                  { value: "11:00-12:00", label: "11:00 AM - 12:00 PM" },
-                  { value: "12:00-13:00", label: "12:00 PM - 01:00 PM" },
-                  { value: "13:00-14:00", label: "01:00 PM - 02:00 PM" },
-                  { value: "14:00-15:00", label: "02:00 PM - 03:00 PM" },
-                  { value: "15:00-16:00", label: "03:00 PM - 04:00 PM" },
-                  { value: "16:00-17:00", label: "04:00 PM - 05:00 PM" },
-                  { value: "17:00-18:00", label: "05:00 PM - 06:00 PM" },
-                ]}
-                placeholder="Select a time slot"
-                required={false}
-              />
-            </div>
-          </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Upload Image (Optional)

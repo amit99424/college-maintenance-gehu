@@ -1,11 +1,15 @@
-# UI Improvements for Login Modal
+# Staff Dashboard Creation TODO
 
-## Tasks
-- [ ] Update modal container for glassmorphism style (transparent with blur and soft shadows), rounded corners (15-20px), max-width 400-500px desktop, 90% width mobile
-- [ ] Add Poppins font import and apply clean typography (bold heading, smaller lighter subtext)
-- [ ] Style input fields with light shadows, rounded corners, glowing border effect on focus
-- [ ] Design login button with blue gradient background, rounded corners, smooth hover animation (slight zoom and shadow)
-- [ ] Style captcha box with rounded corners, bright background, modern refresh icon with spin animation
-- [ ] Add smooth animations: modal opening (fade + zoom-in), button hover (scale + shadow), input focus (border glow)
-- [ ] Ensure responsive design: desktop max-width 400-500px, mobile 90% width centered
-- [ ] Verify all changes are consistent, minimal, and professional
+- [ ] Modify login/page.js to redirect users with @staff.com emails to /staff-dashboard
+- [ ] Create src/app/staff-dashboard/ directory
+- [ ] Copy and modify page.tsx for staff dashboard
+- [ ] Create staff-dashboard/components/ directory
+- [ ] Copy Sidebar.tsx to staff-dashboard/components/
+- [ ] Copy ComplaintsList.tsx to staff-dashboard/components/
+- [ ] Copy ReopenComplaint.tsx to staff-dashboard/components/
+- [ ] Copy Profile.tsx to staff-dashboard/components/
+- [ ] Copy ChangePassword.tsx to staff-dashboard/components/
+- [ ] Copy other component files (EnhancedDropdown.tsx, etc.) to staff-dashboard/components/
+- [ ] Modify ComplaintForm.tsx for staff (remove preferred date and time)
+- [ ] Test login redirection
+- [ ] Test staff dashboard functionality

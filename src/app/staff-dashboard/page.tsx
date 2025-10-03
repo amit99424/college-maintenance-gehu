@@ -22,13 +22,11 @@ interface UserData {
   [key: string]: unknown;
 }
 
-export default function StudentDashboard() {
+export default function StaffDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeSection, setActiveSection] = useState("submit-complaint");
 
-  console.log("DEBUG: userData in StudentDashboard:", userData);
-  console.log("DEBUG: activeSection in StudentDashboard:", activeSection);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
@@ -63,7 +61,7 @@ export default function StudentDashboard() {
   const renderActiveSection = () => {
     switch (activeSection) {
       case "submit-complaint":
-        return <ComplaintForm />;
+        return <ComplaintForm hidePreferredDateTime={true} />;
       case "my-complaints":
         return <ComplaintsList />;
       case "reopen-complaints":
@@ -77,7 +75,7 @@ export default function StudentDashboard() {
       case "change-password":
         return <ChangePassword onSuccess={() => setActiveSection("profile")} />;
       default:
-        return <ComplaintForm />;
+        return <ComplaintForm hidePreferredDateTime={true} />;
     }
   };
 
@@ -95,7 +93,7 @@ export default function StudentDashboard() {
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar for desktop */}  
+      {/* Sidebar for desktop */}
       <aside className="hidden md:block w-64 fixed top-0 left-0 h-full bg-blue-100 shadow-md z-40">
         <Sidebar
           activeSection={activeSection}
@@ -131,7 +129,7 @@ export default function StudentDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 md:ml-64 p-4 md:p-8">
-        {/* Header */}  
+        {/* Header */}
         <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between bg-blue-400 p-4 rounded">
           <div className="w-full flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
             <img

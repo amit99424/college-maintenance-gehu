@@ -158,10 +158,10 @@ export default function LoginPage() {
 
       localStorage.setItem("userData", JSON.stringify(userData));
 
-      if (userData.role === "student") {
-        router.push("/student-dashboard");
-      } else if (userData.role === "staff") {
+      if (emailTrimmed.endsWith('@staff.com')) {
         router.push("/staff-dashboard");
+      } else if (userData.role === "student") {
+        router.push("/student-dashboard");
       } else if (userData.role === "supervisor") {
         router.push("/supervisor-dashboard");
       } else if (userData.role === "maintenance") {
