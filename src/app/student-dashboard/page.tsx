@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "@/firebase/config";
 import Sidebar from "./components/Sidebar";
 import ComplaintForm from "./components/ComplaintForm";
 import ComplaintsList from "./components/ComplaintsList";
 import ReopenComplaint from "./components/ReopenComplaint";
 import Profile from "./components/Profile";
+import ChangePassword from "./components/ChangePassword";
 
 interface UserData {
   name?: string;
@@ -46,6 +47,16 @@ export default function StudentDashboard() {
     return () => unsubscribe();
   }, [router]);
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem("userData");
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   const renderActiveSection = () => {
     switch (activeSection) {
       case "submit-complaint":
@@ -60,6 +71,8 @@ export default function StudentDashboard() {
         ) : (
           <div className="text-center text-gray-500">Loading profile...</div>
         );
+      case "change-password":
+        return <ChangePassword onSuccess={() => setActiveSection("profile")} />;
       default:
         return <ComplaintForm />;
     }
@@ -87,6 +100,7 @@ export default function StudentDashboard() {
           userData={userData ?? {}}
           isOpen={isSidebarOpen}
           setIsOpen={setIsSidebarOpen}
+          onLogout={handleLogout}
         />
       </aside>
 
@@ -106,6 +120,7 @@ export default function StudentDashboard() {
               userData={userData ?? {}}
               isOpen={isSidebarOpen}
               setIsOpen={setIsSidebarOpen}
+              onLogout={handleLogout}
             />
           </aside>
         </div>
@@ -115,19 +130,19 @@ export default function StudentDashboard() {
       <main className="flex-1 md:ml-64 p-4 md:p-8">
         {/* Header */}  
         <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between bg-blue-400 p-4 rounded">
-          <div className="w-full">
-            <h1 className="text-2xl font-bold text-gray-950">
-              Student Dashboard
-            </h1>
-            <p className="text-gray-600">
-              Welcome back, {userData?.name || "Student"}!
-            </p>
+          <div className="w-full flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
+            <img
+              src="/university-logo.png"
+              alt="University Logo"
+              className="h-20 object-contain"
+              style={{ backgroundColor: 'transparent', marginLeft: -40 }}
+            />
           </div>
 
           {/* Hamburger for Mobile */}
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-200 bg-gray-700 text-white shadow-md"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-200 bg-blue-900 text-white shadow-md"
             aria-label="Toggle sidebar"
           >
             <svg

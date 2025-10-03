@@ -14,6 +14,7 @@ interface SidebarProps {
   userData: UserData;
   isOpen?: boolean;
   setIsOpen?: (open: boolean) => void;
+  onLogout?: () => void;
 }
 
 interface MenuItem {
@@ -22,7 +23,7 @@ interface MenuItem {
   icon: string;
 }
 
-export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen }: SidebarProps) {
+export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen, onLogout }: SidebarProps) {
   // Removed unused state to fix lint warning
   // const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -92,7 +93,7 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
           {menuItems.map((item) => (
             <div
               key={item.id}
-              className={`bg-blue-100 rounded-md shadow p-1 ${
+              className={`bg-blue-200 rounded-md shadow p-1 ${
                 activeSection === item.id ? "border-2 border-blue-600" : ""
               }`}
             >
@@ -112,8 +113,29 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="text-xs text-gray-500">
+        <div className="absolute bottom-4 left-4 right-4 space-y-3">
+          <div className="bg-blue-200 rounded-md shadow p-1">
+            <button
+              onClick={() => handleMenuItemClick("change-password")}
+              className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-gray-700 hover:bg-blue-200"
+            >
+              <span className="text-xl mr-3">🔑</span>
+              <span className="font-medium">Change Password</span>
+            </button>
+          </div>
+          <div className="bg-red-200 rounded-md shadow p-1">
+            <button
+              onClick={() => {
+                if (setIsOpen) setIsOpen(false);
+                if (onLogout) onLogout();
+              }}
+              className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-red-700 hover:bg-red-200"
+            >
+              <span className="text-xl mr-3">🚪</span>
+              <span className="font-medium">Logout</span>
+            </button>
+          </div>
+          <div className="text-xs text-gray-500 pt-2 text-center">
             College Maintenance System
           </div>
         </div>
