@@ -182,12 +182,14 @@ export default function SignupPage() {
             <div>
               <input
                 id="dob"
-                type="date"
-                placeholder="dd-mm-yyyy"
+                type="text"
+                placeholder="Enter DOB (dd-mm-yyyy)"
                 value={dob}
                 onChange={(e) => setDob(e.target.value)}
                 required
                 className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                pattern="\\d{2}-\\d{2}-\\d{4}"
+                title="Enter date in dd-mm-yyyy format"
               />
             </div>
 
