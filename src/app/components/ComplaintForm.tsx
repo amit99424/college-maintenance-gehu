@@ -214,7 +214,7 @@ export default function ComplaintForm({ hidePreferredDateTime }: ComplaintFormPr
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showSimpleSuccessModal, setShowSimpleSuccessModal] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -236,6 +236,7 @@ export default function ComplaintForm({ hidePreferredDateTime }: ComplaintFormPr
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitMessage("");
+    setShowSimpleSuccessModal(false);
 
     try {
       const user = auth.currentUser;
@@ -266,7 +267,7 @@ export default function ComplaintForm({ hidePreferredDateTime }: ComplaintFormPr
       });
 
       setSubmitMessage("Complaint submitted successfully!");
-      setShowSuccessModal(true);
+      setShowSimpleSuccessModal(true);
       setFormData({
         title: "",
         building: "",
@@ -294,7 +295,7 @@ export default function ComplaintForm({ hidePreferredDateTime }: ComplaintFormPr
         <p className="text-gray-600 mb-6">
           Please provide detailed information about your maintenance request to help us assist you better.
         </p>
-        {submitMessage && (
+        {!showSimpleSuccessModal && submitMessage && (
           <div
             className={`mb-4 p-3 rounded-lg ${
               submitMessage.includes("successfully")
@@ -306,55 +307,28 @@ export default function ComplaintForm({ hidePreferredDateTime }: ComplaintFormPr
           </div>
         )}
 
-{showSuccessModal && (
+{showSimpleSuccessModal && (
   <div className="fixed inset-0 flex items-center justify-center bg-transparent bg-opacity-50 z-50">
-    <div className="bg-black rounded-lg p-6 max-w-sm w-full shadow-lg relative">
+    <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg relative border-4 border-green-600">
       <button
-        onClick={() => setShowSuccessModal(false)}
-        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+        onClick={() => setShowSimpleSuccessModal(false)}
+        className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
         aria-label="Close modal"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      <h3 className="text-lg font-extrabold mb-4 text-green-700">Complaint Submitted Successfully!</h3>
-      <div className="text-left space-y-2 mb-6">
-        <p><span className="font-semibold">Subject:</span> {formData.title || "-"}</p>
-        <p><span className="font-semibold">Category:</span> {formData.category || "-"}</p>
-        <p><span className="font-semibold">Priority:</span> Low</p>
-        <p><span className="font-semibold">Building:</span> {formData.building || "-"}</p>
-        <p>
-          <span className="font-semibold">Location:</span> {formData.room || "-"}{" "}
-          {(() => {
-            const roomObj = roomData.find(
-              (item) =>
-                (item["Room No."] === formData.room || item["Room No"] === formData.room) &&
-                ((item["Building Name"] || item["Hostel"]) === formData.building)
-            );
-            if (roomObj) {
-              if (roomObj["Hostel"]) {
-                return `(Hostel Room - ${roomObj["Floor/Block"] || "Unknown Floor"})`;
-              } else {
-                return `(${roomObj["Lab/Room Name"] || "Unknown Room"})`;
-              }
-            }
-            return "";
-          })()}
-        </p>
-        <p>
-          <span className="font-semibold">Status:</span>{" "}
-          <span className="inline-block bg-blue-200 text-blue-800 rounded-full px-3 py-1 text-sm font-semibold">
-            Pending
-          </span>
-        </p>
+      <h3 className="text-lg font-bold mb-4 text-green-700 text-center">Complaint Submitted Successfully!</h3>
+      <p className="text-center text-gray-700">Thank you for submitting your complaint. We will address it as soon as possible.</p>
+      <div className="mt-6 flex justify-center">
+        <button
+          onClick={() => setShowSimpleSuccessModal(false)}
+          className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
+        >
+          Close
+        </button>
       </div>
-      <button
-        onClick={() => setShowSuccessModal(false)}
-        className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
-      >
-        Close
-      </button>
     </div>
   </div>
 )}

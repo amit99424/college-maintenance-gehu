@@ -29,6 +29,10 @@ export default function ComplaintsList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // New state for inline delete confirmation popup
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [complaintToDelete, setComplaintToDelete] = useState<Complaint | null>(null);
+
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
@@ -106,17 +110,34 @@ export default function ComplaintsList() {
     setIsDialogOpen(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this complaint?")) return;
-    setDeletingId(id);
+  const handleDelete = (id: string) => {
+    const complaint = complaints.find((c) => c.id === id);
+    if (complaint) {
+      setComplaintToDelete(complaint);
+      setShowDeletePopup(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!complaintToDelete) return;
+    setDeletingId(complaintToDelete.id);
     try {
-      await deleteDoc(doc(db, "complaints", id));
+      await deleteDoc(doc(db, "complaints", complaintToDelete.id));
       setDeletingId(null);
+      setShowDeletePopup(false);
+      setComplaintToDelete(null);
     } catch (error) {
       console.error("Failed to delete complaint:", error);
       setDeletingId(null);
+      setShowDeletePopup(false);
+      setComplaintToDelete(null);
       alert("Failed to delete complaint. Please try again.");
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeletePopup(false);
+    setComplaintToDelete(null);
   };
 
   if (loading) {
@@ -219,7 +240,7 @@ export default function ComplaintsList() {
                     <span className="font-medium">ID: {complaint.id.slice(0, 8)}...</span>
                   </div>
 
-                  <div className="mt-4 flex space-x-2">
+                  <div className="mt-4 flex space-x-2 relative">
                     <button
                       onClick={() => openDialog(complaint)}
                       className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition"
@@ -247,6 +268,28 @@ export default function ComplaintsList() {
                       </svg>
                       <span>Delete</span>
                     </button>
+                    {showDeletePopup && complaintToDelete?.id === complaint.id && (
+                      <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-300 rounded shadow-lg p-4 z-10">
+                        <p className="mb-4 text-gray-800">
+                      Are you sure you want to delete this complaint?
+                        </p>
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={cancelDelete}
+                            className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={confirmDelete}
+                            disabled={deletingId === complaintToDelete.id}
+                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
