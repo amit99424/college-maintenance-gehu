@@ -222,7 +222,7 @@ export default function LoginPage() {
 
       {/* Main Container */}
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8">
-        <div className="w-[90%] sm:w-full max-w-md bg-white/20 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-y-auto max-h-[90vh] animate-fadeInZoom">
+        <div className="w-[90%] sm:w-full max-w-md bg-white/20 backdrop-transparent-lg rounded-2xl shadow-2xl border border-white/20 overflow-y-auto max-h-[90vh] animate-fadeInZoom">
           {/* Logo Area */}
           <div className="bg-blue-200 rounded-t-2xl p-4 flex justify-center items-center shadow-inner">
             <Image
@@ -236,14 +236,13 @@ export default function LoginPage() {
           </div>
           {/* Heading */}
           <div className="text-center px-4 sm:px-6 md:px-8 pt-4">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">Login to Your Account</h1>
-            <p className="text-sm text-gray-500">Welcome back! Please sign in to continue.</p>
+            {/* <h1 className="text-2xl font-bold text-gray-800 mb-2">Login to Your Account</h1>
+            <p className="text-sm text-gray-900">Welcome back! Please sign in to continue.</p> */}
           </div>
           <form
             onSubmit={handleLogin}
             className="flex flex-col gap-4 sm:gap-5 p-4 sm:p-6 md:p-8"
           >
-
             {/* Email */}
             <div className="relative w-full">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
