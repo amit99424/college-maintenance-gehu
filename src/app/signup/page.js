@@ -27,6 +27,7 @@ export default function SignupPage() {
     "Plumbing",
     "Maintenance",
     "Lab/Server",
+    "Other"
   ];
 
   // validation
@@ -356,4 +357,4 @@ export default function SignupPage() {
       </div>
     </div>
   );
-}
+} // everything is fine 
