@@ -12,7 +12,7 @@ declare module 'react-csv' {
     className?: string;
   }
 
-  interface CSVDownloadProps extends CSVLinkProps {}
+  type CSVDownloadProps = CSVLinkProps;
 
   export const CSVLink: React.ComponentType<CSVLinkProps>;
   export const CSVDownload: React.ComponentType<CSVDownloadProps>;

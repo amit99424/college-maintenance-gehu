@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import { db } from "@/firebase/config";
 
 interface DashboardHomeProps {
@@ -213,7 +213,16 @@ export default function DashboardHome({ category, setActiveSection }: DashboardH
                     {complaint.building as string} - {complaint.room as string} • {complaint.status}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {(complaint.createdAt as any)?.toDate?.()?.toLocaleDateString() || 'Recent'}
+                    {(() => {
+                      const createdAt = complaint.createdAt as Timestamp | Date | undefined;
+                      if (createdAt instanceof Timestamp) {
+                        return createdAt.toDate().toLocaleDateString();
+                      } else if (createdAt instanceof Date) {
+                        return createdAt.toLocaleDateString();
+                      } else {
+                        return 'Recent';
+                      }
+                    })()}
                   </p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(category || "")}`}>
