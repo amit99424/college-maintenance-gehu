@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 import { auth } from "@/firebase/config";
 import { toast } from "sonner";
 
@@ -45,12 +46,16 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
 
       toast.success("Password changed successfully");
       onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Password change error:", error);
-      if (error.code === "auth/wrong-password") {
-        toast.error("Current password is incorrect");
-      } else if (error.code === "auth/weak-password") {
-        toast.error("New password is too weak");
+      if (error instanceof FirebaseError) {
+        if (error.code === "auth/wrong-password") {
+          toast.error("Current password is incorrect");
+        } else if (error.code === "auth/weak-password") {
+          toast.error("New password is too weak");
+        } else {
+          toast.error("Failed to change password");
+        }
       } else {
         toast.error("Failed to change password");
       }

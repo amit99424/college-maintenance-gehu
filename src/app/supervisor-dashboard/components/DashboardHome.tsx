@@ -13,7 +13,7 @@ interface Complaint {
   id: string;
   status: string;
   category: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export default function DashboardHome({ category, setActiveSection }: DashboardHomeProps) {
@@ -154,7 +154,7 @@ export default function DashboardHome({ category, setActiveSection }: DashboardH
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-xl text-white shadow-lg">
         <h2 className="text-2xl font-bold font-poppins mb-2">Welcome back!</h2>
-        <p className="text-blue-100">Here's an overview of your {category} complaints</p>
+        <p className="text-blue-100">Here&apos;s an overview of your {category} complaints</p>
       </div>
 
       {/* Summary Cards */}
@@ -208,12 +208,12 @@ export default function DashboardHome({ category, setActiveSection }: DashboardH
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex-1">
-                  <p className="font-semibold text-gray-900 mb-1">{complaint.title}</p>
+                  <p className="font-semibold text-gray-900 mb-1">{complaint.title as string}</p>
                   <p className="text-sm text-gray-600">
-                    {complaint.building} - {complaint.room} • {complaint.status}
+                    {complaint.building as string} - {complaint.room as string} • {complaint.status}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {complaint.createdAt?.toDate?.()?.toLocaleDateString() || 'Recent'}
+                    {(complaint.createdAt as any)?.toDate?.()?.toLocaleDateString() || 'Recent'}
                   </p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(category || "")}`}>

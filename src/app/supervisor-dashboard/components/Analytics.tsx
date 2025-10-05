@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
@@ -19,8 +19,8 @@ interface Complaint {
   id: string;
   status: string;
   category: string;
-  createdAt: any;
-  [key: string]: any;
+  createdAt: Timestamp | Date;
+  [key: string]: unknown;
 }
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042"];
@@ -66,7 +66,7 @@ export default function Analytics({ category }: AnalyticsProps) {
   const completedComplaints = complaints.filter(c => c.status.toLowerCase() === "completed");
   const resolvedByDate: Record<string, number> = {};
   completedComplaints.forEach(c => {
-    const date = c.createdAt?.toDate ? c.createdAt.toDate() : new Date(c.createdAt);
+    const date = c.createdAt instanceof Timestamp ? c.createdAt.toDate() : c.createdAt;
     const dateStr = date.toISOString().split("T")[0];
     resolvedByDate[dateStr] = (resolvedByDate[dateStr] || 0) + 1;
   });
@@ -104,7 +104,7 @@ export default function Analytics({ category }: AnalyticsProps) {
     id: c.id,
     status: c.status,
     category: c.category,
-    createdAt: c.createdAt?.toDate ? c.createdAt.toDate().toISOString() : new Date(c.createdAt).toISOString()
+    createdAt: (c.createdAt instanceof Timestamp ? c.createdAt.toDate() : c.createdAt).toISOString()
   }));
 
   if (loading) {

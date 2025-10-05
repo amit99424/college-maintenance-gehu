@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, orderBy, updateDoc, doc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, updateDoc, doc, Timestamp } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
 
@@ -17,9 +17,9 @@ interface Complaint {
   room: string;
   status: string;
   submittedBy: string;
-  createdAt: any;
+  createdAt: Timestamp | Date;
   category: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export default function ComplaintsTable({ category }: ComplaintsTableProps) {
@@ -129,14 +129,14 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
     }
   };
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: Timestamp | Date | undefined) => {
     if (!timestamp) return "N/A";
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const date = timestamp instanceof Timestamp ? timestamp.toDate() : timestamp;
     return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const getUniqueValues = (key: keyof Complaint) => {
-    return [...new Set(complaints.map(c => c[key]).filter(Boolean))];
+    return [...new Set(complaints.map(c => c[key] as string).filter(Boolean))];
   };
 
   if (loading) {
