@@ -63,7 +63,7 @@ export default function StudentDashboard() {
   const renderActiveSection = () => {
     switch (activeSection) {
       case "submit-complaint":
-        return <ComplaintForm />;
+        return <ComplaintForm userRole={userData?.role} />;
       case "my-complaints":
         return <ComplaintsList />;
       case "reopen-complaints":
@@ -77,7 +77,7 @@ export default function StudentDashboard() {
       case "change-password":
         return <ChangePassword onSuccess={() => setActiveSection("profile")} />;
       default:
-        return <ComplaintForm />;
+        return <ComplaintForm userRole={userData?.role} />;
     }
   };
 

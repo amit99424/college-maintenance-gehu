@@ -8,8 +8,6 @@ import { toast } from "sonner";
 
 interface UserData {
   name?: string;
-  collegeId?: string;
-  department?: string;
   email?: string;
   role?: string;
   profileImage?: string;
@@ -35,7 +33,7 @@ export default function Profile({ userData }: ProfileProps) {
     const file = e.target.files[0];
     setUploading(true);
     try {
-      const storageRef = ref(storage, `profileImages/${userData.collegeId || "unknown"}/${file.name}`);
+      const storageRef = ref(storage, `profileImages/unknown/${file.name}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
       setProfileImage(url);
@@ -49,28 +47,15 @@ export default function Profile({ userData }: ProfileProps) {
   };
 
   const handleSave = async () => {
-    setSaving(true);
-    try {
-      const userDocRef = doc(db, "users", userData.collegeId || "");
-      await updateDoc(userDocRef, {
-        name,
-        dob,
-        profileImage,
-      });
-      toast.success("Profile updated successfully");
-    } catch (error) {
-      console.error("Save error:", error);
-      toast.error("Failed to update profile");
-    } finally {
-      setSaving(false);
-    }
+    toast.error("Profile update is disabled because user ID is removed.");
+    return;
   };
 
   return (
-    <div className="p-6 bg-white rounded shadow-md max-w-3xl mx-auto">
+    <div className="p-6 bg-white rounded shadow-md w-full max-w-full md:max-w-4xl mx-auto overflow-auto">
       <h2 className="text-xl font-semibold mb-6 text-gray-900">Profile Information</h2>
       <div className="space-y-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
             <input
@@ -80,7 +65,7 @@ export default function Profile({ userData }: ProfileProps) {
               className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="flex flex-col items-center mt-8">
+          <div className="flex flex-col items-center mt-4 md:mt-0">
             <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mb-2 overflow-hidden">
               {profileImage ? (
                 <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />

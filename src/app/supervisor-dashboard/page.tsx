@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,7 +20,6 @@ interface UserData {
   email?: string;
   role?: string;
   category?: string;
-  department?: string;
   profileImage?: string;
   uid?: string;
   [key: string]: unknown;
@@ -59,8 +59,9 @@ export default function SupervisorDashboard() {
         // Fetch user data from Firestore
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         if (userDoc.exists()) {
-          setUserData(userDoc.data());
-          localStorage.setItem("userData", JSON.stringify(userDoc.data()));
+          const data = userDoc.data();
+          setUserData(data);
+          localStorage.setItem("userData", JSON.stringify(data));
         } else {
           setUserData(null);
         }
@@ -92,6 +93,7 @@ export default function SupervisorDashboard() {
       case "analytics":
         return <Analytics category={userData?.category} />;
       case "profile":
+        {console.log("SupervisorDashboard userData:", userData);}
         return userData ? <Profile userData={userData} /> : <div>Loading profile...</div>;
       case "change-password":
         return <ChangePassword onSuccess={() => setActiveSection("profile")} />;
@@ -127,29 +129,37 @@ export default function SupervisorDashboard() {
       </aside>
 
       {/* Sidebar for mobile (slide-in) */}
-      {isSidebarOpen && (
-        <div className="fixed inset-0 z-50 flex">
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black/40"
-            onClick={() => setIsSidebarOpen(false)}
+      <div
+        className={`fixed inset-0 z-50 flex transition-opacity duration-300 ${
+          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        {/* Overlay */}
+        <div
+          className={`fixed inset-0 bg-black/40 transition-opacity duration-300 ${
+            isSidebarOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setIsSidebarOpen(false)}
+        />
+        {/* Sidebar Panel */}
+        <aside
+          className={`relative w-64 bg-white shadow-xl h-full z-50 transition-transform duration-300 transform ${
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <Sidebar
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            userData={userData ?? {}}
+            isOpen={isSidebarOpen}
+            setIsOpen={setIsSidebarOpen}
+            onLogout={handleLogout}
           />
-          {/* Sidebar Panel */}
-          <aside className="relative w-64 bg-white shadow-xl h-full z-50 transition-colors duration-300">
-            <Sidebar
-              activeSection={activeSection}
-              setActiveSection={setActiveSection}
-              userData={userData ?? {}}
-              isOpen={isSidebarOpen}
-              setIsOpen={setIsSidebarOpen}
-              onLogout={handleLogout}
-            />
-          </aside>
-        </div>
-      )}
+        </aside>
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-4 md:p-8">
+      <main className="flex-grow min-w-0 md:ml-64 p-4 md:p-8">
         {/* Header */}
         <div className="sticky top-0 z-20 pb-4 mb-6 border-b border-gray-200 flex items-center justify-between bg-white p-4 rounded-lg shadow-md transition-all duration-300">
           <h1 className="text-xl md:text-2xl font-bold text-gray-800 font-poppins">
@@ -174,6 +184,22 @@ export default function SupervisorDashboard() {
               </svg>
               {/* Notification badge */}
               <span className="absolute top-0 right-0 inline-block w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
+            </button>
+            {/* Hamburger menu button for mobile */}
+            <button
+              aria-label="Toggle sidebar"
+              className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
 
             {/* Notification Popup */}

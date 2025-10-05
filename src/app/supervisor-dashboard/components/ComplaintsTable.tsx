@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, orderBy, updateDoc, doc, Timestamp } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, updateDoc, doc, Timestamp, getDoc } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
 
@@ -29,18 +29,29 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [buildingFilter, setBuildingFilter] = useState("");
-  const [roomFilter, setRoomFilter] = useState("");
+  const [submittedByFilter, setSubmittedByFilter] = useState("");
 
   useEffect(() => {
     if (!category) return;
 
     let isSubscribed = true;
 
-    const q = query(
-      collection(db, "complaints"),
-      where("category", "==", category),
-      orderBy("createdAt", "desc")
-    );
+    // Build dynamic where clauses for filters (excluding submittedBy for client-side filtering)
+    let whereClauses = [];
+
+    if (category) {
+      whereClauses.push(where("category", "==", category));
+    }
+
+    if (statusFilter) {
+      whereClauses.push(where("status", "==", statusFilter));
+    }
+
+    if (buildingFilter) {
+      whereClauses.push(where("building", "==", buildingFilter));
+    }
+
+    let q = query(collection(db, "complaints"), ...whereClauses, orderBy("createdAt", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (!isSubscribed) return;
@@ -56,7 +67,7 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
       isSubscribed = false;
       unsubscribe();
     };
-  }, [category]);
+  }, [category, statusFilter, buildingFilter]);
 
   useEffect(() => {
     let filtered = complaints;
@@ -65,28 +76,21 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
     if (searchTerm) {
       filtered = filtered.filter(complaint =>
         complaint.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        complaint.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        complaint.submittedBy?.toLowerCase().includes(searchTerm.toLowerCase())
+        complaint.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Status filter
-    if (statusFilter) {
-      filtered = filtered.filter(complaint => complaint.status.toLowerCase() === statusFilter.toLowerCase());
-    }
-
-    // Building filter
-    if (buildingFilter) {
-      filtered = filtered.filter(complaint => complaint.building === buildingFilter);
-    }
-
-    // Room filter
-    if (roomFilter) {
-      filtered = filtered.filter(complaint => complaint.room === roomFilter);
+    // Submitted By filter
+    if (submittedByFilter) {
+      const normalizedSubmittedByFilter = submittedByFilter.toLowerCase();
+      filtered = filtered.filter(complaint =>
+        complaint.submittedBy?.toLowerCase() === normalizedSubmittedByFilter
+      );
     }
 
     setFilteredComplaints(filtered);
-  }, [complaints, searchTerm, statusFilter, buildingFilter, roomFilter]);
+  }, [complaints, searchTerm, submittedByFilter]);
+
 
   const handleStatusChange = async (complaintId: string, newStatus: string) => {
     try {
@@ -186,54 +190,52 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
           </select>
         </div>
 
-        {/* Building Filter */}
-        <div>
-          <select
-            value={buildingFilter}
-            onChange={(e) => setBuildingFilter(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-          >
-            <option value="">All Buildings</option>
-            {getUniqueValues("building").map(building => (
-              <option key={building} value={building}>{building}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Room Filter */}
-        <div>
-          <select
-            value={roomFilter}
-            onChange={(e) => setRoomFilter(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-          >
-            <option value="">All Rooms</option>
-            {getUniqueValues("room").map(room => (
-              <option key={room} value={room}>{room}</option>
-            ))}
-          </select>
-        </div>
+      {/* Building Filter */}
+      <div>
+        <select
+          value={buildingFilter}
+          onChange={(e) => setBuildingFilter(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+        >
+          <option value="">All Buildings</option>
+          {getUniqueValues("building").map(building => (
+            <option key={building} value={building}>{building}</option>
+          ))}
+        </select>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Submitted By Filter */}
+      <div>
+        <select
+          value={submittedByFilter}
+          onChange={(e) => setSubmittedByFilter(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+        >
+          <option value="">All Submitted By</option>
+          <option value="Student">Student</option>
+          <option value="Staff">Staff</option>
+        </select>
+      </div>
+    </div>
+
+      {/* Table for md and above */}
+      <div className="overflow-x-auto hidden md:block">
         <table className="min-w-full table-auto">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Building</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted By</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Title</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Description</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Building</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Room</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Date</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredComplaints.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                   No complaints found matching your filters.
                 </td>
               </tr>
@@ -257,13 +259,14 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
                       {complaint.status}
                     </span>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{complaint.submittedBy}</div>
-                  </td>
+                  {/* Removed Submitted By data cell */}
+                  {/* <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 capitalize">{complaint.submittedBy}</div>
+                  </td> */}
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{formatDate(complaint.createdAt)}</div>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <div className="flex space-x-2">
                       {complaint.status !== "Completed" && (
                         <select
@@ -289,8 +292,58 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
                 </tr>
               ))
             )}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+      {/* Removed duplicate table block */}
+
+      {/* Card layout for mobile */}
+      <div className="md:hidden space-y-4">
+        {filteredComplaints.length === 0 ? (
+          <div className="text-center text-gray-500">No complaints found matching your filters.</div>
+        ) : (
+          filteredComplaints.map((complaint) => (
+            <div key={complaint.id} className="bg-gray-50 p-4 rounded-lg shadow hover:bg-gray-100 transition-colors duration-200">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="font-semibold text-gray-900">{complaint.title}</h4>
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(complaint.status)}`}>
+                  {complaint.status}
+                </span>
+              </div>
+              <p className="text-sm text-gray-700 mb-1 truncate">{complaint.description}</p>
+              <p className="text-xs text-gray-600 mb-1">
+                <strong>Building:</strong> {complaint.building} &nbsp; <strong>Room:</strong> {complaint.room}
+              </p>
+              <p className="text-xs text-gray-600 mb-1">
+                <strong>Submitted By:</strong> <span className="capitalize">{complaint.submittedBy}</span>
+              </p>
+              <p className="text-xs text-gray-600 mb-2">
+                <strong>Date:</strong> {formatDate(complaint.createdAt)}
+              </p>
+              <div className="flex space-x-2">
+                {complaint.status !== "Completed" && (
+                  <select
+                    value={complaint.status}
+                    onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
+                    className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                )}
+                {complaint.status === "Completed" && (
+                  <button
+                    onClick={() => handleReopen(complaint.id)}
+                    className="text-xs px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 w-full"
+                  >
+                    Reopen
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Results count */}

@@ -124,9 +124,10 @@ function CustomDropdown({ value, onChange, options, placeholder, required }: Cus
 
 interface ComplaintFormProps {
   hidePreferredDateTime?: boolean;
+  userRole?: string;
 }
 
-export default function ComplaintForm({ hidePreferredDateTime }: ComplaintFormProps) {
+export default function ComplaintForm({ hidePreferredDateTime, userRole }: ComplaintFormProps) {
   // Import roomStore.json data
   const [roomData, setRoomData] = useState<RoomData[]>([]);
   const [formData, setFormData] = useState({
@@ -260,6 +261,7 @@ export default function ComplaintForm({ hidePreferredDateTime }: ComplaintFormPr
         preferredTime: formData.preferredTime,
         userId: user.uid,
         userEmail: user.email,
+        submittedBy: userRole ? (userRole.toLowerCase() === "student" ? "Student" : "Staff") : "",
         status: "pending",
         imageUrl,
         createdAt: serverTimestamp(),
