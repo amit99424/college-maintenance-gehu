@@ -261,7 +261,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         preferredTime: formData.preferredTime,
         userId: user.uid,
         userEmail: user.email,
-        submittedBy: userRole ? (userRole.toLowerCase() === "student" ? "Student" : "Staff") : "",
+        submittedBy: user.email && user.email.toLowerCase().includes("staff") ? "staff" : "student",
         status: "pending",
         imageUrl,
         createdAt: serverTimestamp(),

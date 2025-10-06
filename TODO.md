@@ -1,5 +1,10 @@
-- [x] Update college-maintenance/src/types/react-csv.d.ts to replace 'any' with proper TypeScript types for CSVLink and CSVDownload components
-- [x] Run build command to verify the TypeScript error is resolved
-- [x] Fix 'any' types in college-maintenance/src/app/supervisor-dashboard/components/Analytics.tsx Complaint interface
-- [x] Fix 'any' type in college-maintenance/src/app/supervisor-dashboard/components/ChangePassword.tsx catch block
-- Run build again to confirm all errors are resolved
+# TODO for Fixing My Complaints Section
+
+- [ ] Remove search filter from ComplaintsTable.tsx
+- [ ] Fix casing in filter selects to match Firestore (Pending, In Progress, etc.)
+- [ ] Update Firestore query where clauses to exact match
+- [ ] Add "Submitted By" column to table
+- [ ] Remove redundant client-side filtering useEffect
+- [ ] Rename component to MyComplaints
+- [ ] Update import in supervisor-dashboard/page.tsx
+- [ ] Test the component for real-time updates and filters
