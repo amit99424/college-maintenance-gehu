@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { collection, query, where, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import { db } from "@/firebase/config";
 
-interface SupervisorUpdatesProps {}
+interface SupervisorUpdatesProps extends Record<string, never> {}
 
 interface Complaint {
   id: string;

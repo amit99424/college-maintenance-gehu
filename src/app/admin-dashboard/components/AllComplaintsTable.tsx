@@ -15,7 +15,9 @@ import {
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
 
-interface AllComplaintsTableProps {}
+interface AllComplaintsTableProps {
+  adminName?: string;
+}
 
 interface Complaint {
   id: string;
@@ -34,7 +36,7 @@ interface Complaint {
   [key: string]: unknown;
 }
 
-export default function AllComplaintsTable({}: AllComplaintsTableProps) {
+export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
 
