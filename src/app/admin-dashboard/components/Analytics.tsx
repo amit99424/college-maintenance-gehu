@@ -11,7 +11,7 @@ import {
 import { jsPDF } from "jspdf";
 import { CSVLink } from "react-csv";
 
-interface AnalyticsProps extends Record<string, never> {}
+type AnalyticsProps = Record<string, never>;
 
 interface Complaint {
   id: string;
