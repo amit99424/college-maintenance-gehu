@@ -1,0 +1,148 @@
+"use client";
+
+import { useState } from "react";
+
+interface UserData {
+  name?: string;
+  department?: string;
+  category?: string;
+  [key: string]: unknown;
+}
+
+interface SidebarProps {
+  activeSection: string;
+  setActiveSection: (section: string) => void;
+  userData: UserData;
+  isOpen?: boolean;
+  setIsOpen?: (open: boolean) => void;
+  onLogout?: () => void;
+}
+
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen, onLogout }: SidebarProps) {
+  const menuItems: MenuItem[] = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: "📊",
+    },
+    {
+      id: "all-complaints",
+      label: "All Complaints",
+      icon: "📋",
+    },
+    {
+      id: "supervisor-updates",
+      label: "Supervisor Updates",
+      icon: "🔄",
+    },
+    {
+      id: "analytics",
+      label: "Analytics / Reports",
+      icon: "📈",
+    },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: "👤",
+    },
+  ];
+
+  // Close sidebar on menu item click (for mobile)
+  const handleMenuItemClick = (id: string) => {
+    setActiveSection(id);
+    if (setIsOpen) {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Overlay for mobile when sidebar is open */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 md:hidden z-10"
+          onClick={() => setIsOpen && setIsOpen(false)}
+        />
+      )}
+
+      <div
+        className={`fixed top-0 left-0 h-full bg-white transition-transform duration-300 z-50
+          w-64
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          md:static md:w-64 md:translate-x-0
+          md:border-r md:border-gray-200
+          md:rounded-r-lg
+          md:overflow-hidden
+        `}
+      >
+        {/* Header */}
+        <div className="p-4 border-b flex flex-col items-start justify-between space-y-1 bg-blue-400">
+          <h2 className="text-lg font-semibold text-gray-800 truncate max-w-[12rem]">
+            {userData.name || "Admin"}
+          </h2>
+          <p className="text-sm text-gray-600 truncate max-w-[12rem]">
+            Administrator
+          </p>
+        </div>
+
+        {/* Navigation */}
+        <nav className="mt-4 space-y-3">
+          {menuItems.map((item) => (
+            <div
+              key={item.id}
+              className={`bg-blue-200 rounded-md shadow p-1 ${
+                activeSection === item.id ? "border-2 border-blue-600" : ""
+              }`}
+            >
+              <button
+                onClick={() => handleMenuItemClick(item.id)}
+                className={`w-full flex items-center px-4 py-3 text-left transition-colors rounded-md ${
+                  activeSection === item.id
+                    ? "bg-blue-100 text-blue-600"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <span className="text-xl mr-3">{item.icon}</span>
+                <span className="font-medium">{item.label}</span>
+              </button>
+            </div>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="absolute bottom-4 left-4 right-4 space-y-3">
+          <div className="bg-blue-200 rounded-md shadow p-1">
+            <button
+              onClick={() => handleMenuItemClick("change-password")}
+              className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-gray-700 hover:bg-blue-200"
+            >
+              <span className="text-xl mr-3">🔑</span>
+              <span className="font-medium">Change Password</span>
+            </button>
+          </div>
+          <div className="bg-red-200 rounded-md shadow p-1">
+            <button
+              onClick={() => {
+                if (setIsOpen) setIsOpen(false);
+                if (onLogout) onLogout();
+              }}
+              className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-red-700 hover:bg-red-200"
+            >
+              <span className="text-xl mr-3">🚪</span>
+              <span className="font-medium">Logout</span>
+            </button>
+          </div>
+          <div className="text-xs text-gray-500 pt-2 text-center">
+            College Maintenance System
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

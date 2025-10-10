@@ -115,7 +115,7 @@ export default function Profile({ userData }: ProfileProps) {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Profile Image Section */}
           <div className="md:w-1/3 text-center">
-            <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
               {profileImage ? (
                 <Image
                   src={profileImage}
@@ -181,7 +181,7 @@ export default function Profile({ userData }: ProfileProps) {
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-6 flex space-x-3">
+            <div className="mt-6 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
               {isEditing ? (
                 <>
                   <button

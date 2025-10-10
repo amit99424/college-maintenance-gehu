@@ -2,17 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import Image from "next/image";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import ForgotPasswordLogin from "@/app/components/ForgotPasswordLogin";
 
 const MAINTENANCE_KEY = "gehuservice@04";
 
@@ -34,10 +32,6 @@ export default function LoginPage() {
 
   // forget password modal states
   const [showForgetPasswordModal, setShowForgetPasswordModal] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetLoading, setResetLoading] = useState(false);
-  const [resetMessage, setResetMessage] = useState("");
-  const [resetError, setResetError] = useState("");
 
   const router = useRouter();
 
@@ -200,7 +194,7 @@ export default function LoginPage() {
   const handleMaintenanceKeySubmit = () => {
     if (maintenanceKeyInput === MAINTENANCE_KEY) {
       setShowMaintenanceKeyModal(false);
-      router.push("/maintenance-dashboard");
+      router.push("/admin-dashboard");
     } else {
       alert("Invalid Maintenance Key!");
     }
@@ -381,22 +375,18 @@ export default function LoginPage() {
             >
               {isLoading ? "Processing..." : "LOGIN"}
             </button>
-            {/* Add Forget Password Button here */}
-            {/* Removed Forget Password Button */}
-            {/* <div className="text-right mt-2 mb-4">
+            {/* Forget Password Button */}
+            <div className="text-right mt-2 mb-4">
               <button
                 type="button"
                 onClick={() => {
-                  setResetEmail(email);
-                  setResetMessage("");
-                  setResetError("");
                   setShowForgetPasswordModal(true);
                 }}
                 className="text-sm text-blue-600 hover:underline focus:outline-none"
               >
-                Forget Password?
+                Forgot Password?
               </button>
-            </div> */}
+            </div>
             {/* Sign Up Text */}
             <p className="text-center text-xs sm:text-sm text-gray-600">
               Don&apos;t have an account?{" "}
@@ -443,15 +433,14 @@ export default function LoginPage() {
       )}
 
       {/* Forget Password Modal */}
-      {/* Removed Forget Password Modal */}
-      {/* <Dialog
+      <Dialog
         open={showForgetPasswordModal}
         onOpenChange={setShowForgetPasswordModal}
       >
         <DialogContent className="p-4 sm:p-6 rounded-lg shadow-lg bg-white/90 text-gray-900 max-w-[95vw] sm:max-w-sm mx-auto mt-10 sm:mt-20 relative">
-          <ForgotPassword />
+          <ForgotPasswordLogin onClose={() => setShowForgetPasswordModal(false)} />
         </DialogContent>
-      </Dialog> */}
+      </Dialog>
     </div>
   );
 }

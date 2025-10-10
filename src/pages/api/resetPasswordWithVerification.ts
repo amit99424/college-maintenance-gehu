@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const FIREBASE_FUNCTIONS_BASE_URL = process.env.FIREBASE_FUNCTIONS_BASE_URL || 'https://us-central1-your-project-id.cloudfunctions.net';
+const FIREBASE_FUNCTIONS_BASE_URL = process.env.FIREBASE_FUNCTIONS_BASE_URL || 'https://us-central1-college-maintenance-69e16.cloudfunctions.net';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -17,7 +17,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       body: JSON.stringify(req.body),
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    console.log('Response status:', response.status);
+    console.log('Response body:', responseText);
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse response as JSON:', parseError);
+      return res.status(500).json({ error: `Invalid response from server: ${responseText.substring(0, 200)}` });
+    }
 
     if (!response.ok) {
       return res.status(response.status).json(data);

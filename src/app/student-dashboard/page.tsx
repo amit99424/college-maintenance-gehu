@@ -131,14 +131,13 @@ export default function StudentDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 md:ml-64 p-4 md:p-8">
-        {/* Header */}  
-        <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between bg-white p-4 rounded">
-          <div className="w-full flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
+        {/* Header */}
+        <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between bg-white p-2 sm:p-4 rounded">
+          <div className="w-full flex flex-col items-start space-y-2">
             <img
               src="/university-logo.png"
               alt="University Logo"
-              className="h-20 object-contain"
-              style={{ backgroundColor: 'transparent', marginLeft: -40 }}
+              className="h-12 sm:h-16 md:h-20 object-contain"
             />
           </div>
 

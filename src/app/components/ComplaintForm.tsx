@@ -291,8 +291,8 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="max-w-full px-4 sm:px-6 md:max-w-4xl md:px-0 mx-auto">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 md:p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-2">Submit New Complaint</h2>
         <p className="text-gray-600 mb-6">
           Please provide detailed information about your maintenance request to help us assist you better.
@@ -308,7 +308,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
             {submitMessage}
           </div>
         )}
-
+``
 {showSimpleSuccessModal && (
   <div className="fixed inset-0 flex items-center justify-center bg-transparent bg-opacity-50 z-50">
     <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg relative border-4 border-green-600">
@@ -334,7 +334,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
     </div>
   </div>
 )}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Complaint Title *
@@ -412,7 +412,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
             />
           </div>
           {!hidePreferredDateTime && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Preferred Date

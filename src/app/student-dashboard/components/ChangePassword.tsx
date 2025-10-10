@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -84,7 +85,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+    <div className="max-w-md mx-auto bg-white p-4 sm:p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Change Password</h2>
 
       {error && (

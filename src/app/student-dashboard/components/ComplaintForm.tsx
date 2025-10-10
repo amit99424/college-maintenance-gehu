@@ -282,8 +282,8 @@ export default function ComplaintForm() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="max-w-full md:max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
+      <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-2">Submit New Complaint</h2>
         <p className="text-gray-600 mb-6">
           Please provide detailed information about your maintenance request to help us assist you better.
@@ -299,7 +299,7 @@ export default function ComplaintForm() {
             {submitMessage}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Complaint Title *
@@ -376,7 +376,7 @@ export default function ComplaintForm() {
               name="category"
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Preferred Date
