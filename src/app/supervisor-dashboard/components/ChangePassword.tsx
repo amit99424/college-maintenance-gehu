@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
-import { auth } from "@/firebase/config";
 import { toast } from "sonner";
 
 interface ChangePasswordProps {
@@ -31,34 +28,42 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
 
     setLoading(true);
     try {
-      const user = auth.currentUser;
-      if (!user || !user.email) {
+      // Get user data from localStorage
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+      if (!userData.email) {
         toast.error("User not authenticated");
         return;
       }
 
-      // Reauthenticate user
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
-      await reauthenticateWithCredential(user, credential);
+      // Call the change password API
+      const response = await fetch("/api/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          currentPassword,
+          newPassword,
+        }),
+      });
 
-      // Update password
-      await updatePassword(user, newPassword);
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || "Failed to change password");
+        setLoading(false);
+        return;
+      }
 
       toast.success("Password changed successfully");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
       onSuccess();
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Password change error:", error);
-      if (error instanceof FirebaseError) {
-        if (error.code === "auth/wrong-password") {
-          toast.error("Current password is incorrect");
-        } else if (error.code === "auth/weak-password") {
-          toast.error("New password is too weak");
-        } else {
-          toast.error("Failed to change password");
-        }
-      } else {
-        toast.error("Failed to change password");
-      }
+      toast.error("Failed to change password");
     } finally {
       setLoading(false);
     }

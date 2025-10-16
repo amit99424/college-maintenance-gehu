@@ -134,7 +134,7 @@ export default function ReopenComplaint() {
             {complaints.map((complaint) => (
               <div
                 key={complaint.id}
-                className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow"
+                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
@@ -169,7 +169,7 @@ export default function ReopenComplaint() {
         {/* Reopen Modal */}
         {selectedComplaint && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Reopen Complaint</h3>
 
               <div className="mb-4">
@@ -194,7 +194,7 @@ export default function ReopenComplaint() {
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                <div className="flex justify-end space-x-3">
                   <button
                     type="button"
                     onClick={() => {

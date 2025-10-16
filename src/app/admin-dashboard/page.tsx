@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, orderBy, onSnapshot, DocumentData, updateDoc } from "firebase/firestore";
 import { Toaster } from "sonner";
 import ThemeToggle from "@/components/ThemeToggle";
 import Sidebar from "./components/Sidebar";
@@ -14,6 +14,8 @@ import SupervisorUpdates from "./components/SupervisorUpdates";
 import Analytics from "./components/Analytics";
 import Profile from "./components/Profile";
 import ChangePassword from "./components/ChangePassword";
+import Notifications from "./components/Notifications";
+import NotificationDropdown from "@/components/NotificationDropdown";
 
 interface UserData {
   name?: string;
@@ -30,49 +32,78 @@ export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  // Close notification popup on outside click
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as HTMLElement;
-      if (!target.closest("#notification-popup") && !target.closest("#notification-button")) {
-        setShowNotifications(false);
-      }
-    }
-    if (showNotifications) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showNotifications]);
-
-  const router = useRouter();
+  interface Notification {
+    id: string;
+    message: string;
+    timestamp: string;
+    isRead: boolean;
+  }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        // Fetch user data from Firestore
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUserData(data);
-          localStorage.setItem("userData", JSON.stringify(data));
-        } else {
-          setUserData(null);
-        }
-      } else {
-        router.push("/login");
-      }
+    // Check localStorage first
+    const storedUserData = localStorage.getItem("userData");
+    if (storedUserData) {
+      const parsedUserData = JSON.parse(storedUserData);
+      setUserData(parsedUserData);
       setLoading(false);
+
+      // Try to sync with Firebase Auth
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        if (currentUser) {
+          setUser(currentUser);
+        }
+      });
+
+      return () => unsubscribe();
+    } else {
+      // No userData in localStorage, redirect to login
+      router.push("/login");
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!userData?.uid) return;
+
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", userData.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const notificationsData: Notification[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data() as DocumentData;
+        notificationsData.push({
+          id: doc.id,
+          message: data.message,
+          timestamp: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString() : "N/A",
+          isRead: data.read || false,
+        });
+      });
+      setNotifications(notificationsData);
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [userData?.uid]);
+
+  const handleClearAll = async () => {
+    try {
+      const promises = notifications.map(notification =>
+        updateDoc(doc(db, "notifications", notification.id), { read: true })
+      );
+      await Promise.all(promises);
+      setNotifications([]);
+    } catch (error) {
+      console.error("Failed to clear all notifications:", error);
+    }
+  };
+
+  const router = useRouter();
 
   const handleLogout = async () => {
     try {
@@ -94,6 +125,8 @@ export default function AdminDashboard() {
         return <SupervisorUpdates />;
       case "analytics":
         return <Analytics />;
+      case "notifications":
+        return <Notifications />;
       case "profile":
         return userData ? <Profile userData={userData} /> : <div>Loading profile...</div>;
       case "change-password":
@@ -111,7 +144,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!user) {
+  if (!userData) {
     return null;
   }
 
@@ -167,25 +200,13 @@ export default function AdminDashboard() {
             Admin Dashboard
           </h1>
           <div className="relative flex items-center space-x-3 z-50">
-            {/* Notification Bell */}
-            <button
-              id="notification-button"
-              aria-label="Notifications"
-              className="relative p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 z-50"
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {/* Notification badge */}
-              <span className="absolute top-0 right-0 inline-block w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-            </button>
+            <NotificationDropdown
+              notifications={notifications}
+              isOpen={isNotificationOpen}
+              onClose={() => setIsNotificationOpen(!isNotificationOpen)}
+              onClearAll={handleClearAll}
+            />
+
             {/* Hamburger menu button for mobile */}
             <button
               aria-label="Toggle sidebar"
@@ -217,69 +238,6 @@ export default function AdminDashboard() {
                 </span>
               </button>
             </div>
-
-            {/* Notification Popup */}
-            {showNotifications && (
-              <div
-                id="notification-popup"
-                className="absolute right-0 mt-2 w-96 bg-white border border-gray-300 rounded-lg shadow-xl z-40"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="notification-title"
-              >
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                  <h2 id="notification-title" className="text-lg font-semibold text-gray-900">
-                    Notifications
-                  </h2>
-                  <button
-                    aria-label="Close notifications"
-                    onClick={() => setShowNotifications(false)}
-                    className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="max-h-72 overflow-y-auto">
-                  <ul className="divide-y divide-gray-200">
-                    <li className="p-4 hover:bg-gray-50 cursor-pointer flex items-center space-x-3">
-                      <span className="inline-block bg-blue-100 text-blue-800 rounded-full p-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 20h.01M12 4h.01" />
-                        </svg>
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">New complaint submitted</p>
-                        <p className="text-xs text-gray-500">5 minutes ago</p>
-                      </div>
-                    </li>
-                    <li className="p-4 hover:bg-gray-50 cursor-pointer flex items-center space-x-3">
-                      <span className="inline-block bg-green-100 text-green-800 rounded-full p-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Complaint resolved by supervisor</p>
-                        <p className="text-xs text-gray-500">1 hour ago</p>
-                      </div>
-                    </li>
-                    <li className="p-4 hover:bg-gray-50 cursor-pointer flex items-center space-x-3">
-                      <span className="inline-block bg-yellow-100 text-yellow-800 rounded-full p-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
-                        </svg>
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Supervisor updated complaint status</p>
-                        <p className="text-xs text-gray-500">Yesterday</p>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 

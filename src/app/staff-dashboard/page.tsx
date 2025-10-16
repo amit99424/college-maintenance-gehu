@@ -3,13 +3,16 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
-import { auth } from "@/firebase/config";
+import { auth, db } from "@/firebase/config";
+import { collection, query, where, orderBy, onSnapshot, updateDoc, doc, DocumentData, Timestamp } from "firebase/firestore";
 import Sidebar from "./components/Sidebar";
 import ComplaintForm from "@/app/components/ComplaintForm";
 import ComplaintsList from "./components/ComplaintsList";
 import ReopenComplaint from "./components/ReopenComplaint";
 import Profile from "./components/Profile";
 import ChangePassword from "./components/ChangePassword";
+import Notifications from "./components/Notifications";
+import NotificationDropdown from "@/components/NotificationDropdown";
 
 interface UserData {
   name?: string;
@@ -22,6 +25,13 @@ interface UserData {
   [key: string]: unknown;
 }
 
+interface Notification {
+  id: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+}
+
 export default function StaffDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -29,24 +39,58 @@ export default function StaffDashboard() {
 
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        const storedUserData = localStorage.getItem("userData");
-        if (storedUserData) {
-          setUserData(JSON.parse(storedUserData));
-        }
-      } else {
-        router.push("/login");
-      }
+    // Check localStorage first
+    const storedUserData = localStorage.getItem("userData");
+    if (storedUserData) {
+      const parsedUserData = JSON.parse(storedUserData);
+      setUserData(parsedUserData);
       setLoading(false);
+
+      // Try to sync with Firebase Auth
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        if (currentUser) {
+          setUser(currentUser);
+        }
+      });
+
+      return () => unsubscribe();
+    } else {
+      // No userData in localStorage, redirect to login
+      router.push("/login");
+      setLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!userData?.uid) return;
+
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", userData.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const notificationsData: Notification[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data() as DocumentData;
+        notificationsData.push({
+          id: doc.id,
+          message: data.message,
+          timestamp: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString() : "N/A",
+          isRead: data.read || false,
+        });
+      });
+      setNotifications(notificationsData);
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [userData?.uid]);
 
   const handleLogout = async () => {
     try {
@@ -58,12 +102,26 @@ export default function StaffDashboard() {
     }
   };
 
+  const handleClearAll = async () => {
+    try {
+      const promises = notifications.map(notification =>
+        updateDoc(doc(db, "notifications", notification.id), { read: true })
+      );
+      await Promise.all(promises);
+      setNotifications([]);
+    } catch (error) {
+      console.error("Failed to clear all notifications:", error);
+    }
+  };
+
   const renderActiveSection = () => {
     switch (activeSection) {
       case "submit-complaint":
         return <ComplaintForm hidePreferredDateTime={true} />;
       case "my-complaints":
         return <ComplaintsList />;
+      case "notifications":
+        return <Notifications />;
       case "reopen-complaints":
         return <ReopenComplaint />;
       case "profile":
@@ -87,7 +145,7 @@ export default function StaffDashboard() {
     );
   }
 
-  if (!user) {
+  if (!userData) {
     return null;
   }
 
@@ -131,7 +189,7 @@ export default function StaffDashboard() {
       <main className="flex-1 md:ml-64 p-4 md:p-8">
         {/* Header */}
         <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between bg-blue-400 p-4 rounded">
-          <div className="w-full flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
+          <div className="flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
             <img
               src="/university-logo.png"
               alt="University Logo"
@@ -140,26 +198,36 @@ export default function StaffDashboard() {
             />
           </div>
 
-          {/* Hamburger for Mobile */}
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-200 bg-blue-900 text-white shadow-md"
-            aria-label="Toggle sidebar"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center space-x-3">
+            {/* Notification Dropdown */}
+            <NotificationDropdown
+              notifications={notifications}
+              isOpen={isNotificationOpen}
+              onClose={() => setIsNotificationOpen(!isNotificationOpen)}
+              onClearAll={handleClearAll}
+            />
+
+            {/* Hamburger for Mobile */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden p-2 rounded-lg hover:bg-gray-200 bg-blue-900 text-white shadow-md"
+              aria-label="Toggle sidebar"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Active Section */}

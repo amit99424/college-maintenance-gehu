@@ -181,7 +181,7 @@ export default function Profile({ userData }: ProfileProps) {
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-6 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+            <div className="mt-6 flex space-x-3">
               {isEditing ? (
                 <>
                   <button

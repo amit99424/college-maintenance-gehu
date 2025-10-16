@@ -131,13 +131,13 @@ export default function ComplaintsList() {
 
   return (
     <>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-6xl mx-auto px-2 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6 md:p-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
             <h2 className="text-xl font-semibold text-gray-800">My Complaints</h2>
 
             {/* Filter Buttons */}
-            <div className="flex flex-wrap space-x-2 space-y-2 md:space-y-0">
+            <div className="flex flex-wrap gap-2">
               {["all", "pending", "in-progress", "resolved"].map((status) => (
                 <button
                   key={status}
@@ -177,9 +177,9 @@ export default function ComplaintsList() {
               {filteredComplaints.map((complaint) => (
                 <div
                   key={complaint.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow"
                 >
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 space-y-3 md:space-y-0 md:space-x-4">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 sm:mb-3 space-y-2 md:space-y-0 md:space-x-4">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-800 mb-1">
                         {complaint.title}
@@ -219,7 +219,7 @@ export default function ComplaintsList() {
                     <span className="font-medium">ID: {complaint.id.slice(0, 8)}...</span>
                   </div>
 
-                  <div className="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                     <button
                       onClick={() => openDialog(complaint)}
                       className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition"

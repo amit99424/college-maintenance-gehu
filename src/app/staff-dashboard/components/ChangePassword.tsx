@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from "firebase/auth";
-import { auth } from "@/firebase/config";
 
 interface ChangePasswordProps {
   onSuccess?: () => void;
@@ -35,19 +33,34 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
     }
 
     try {
-      const user = auth.currentUser;
-      if (!user || !user.email) {
+      // Get user data from localStorage
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+      if (!userData.email) {
         setError("User not authenticated.");
         setIsLoading(false);
         return;
       }
 
-      // Re-authenticate with current password
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
-      await reauthenticateWithCredential(user, credential);
+      // Call the change password API
+      const response = await fetch("/api/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          currentPassword,
+          newPassword,
+        }),
+      });
 
-      // Update password
-      await updatePassword(user, newPassword);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to change password.");
+        setIsLoading(false);
+        return;
+      }
 
       setSuccess("Password changed successfully!");
       setCurrentPassword("");
@@ -57,27 +70,9 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
       if (onSuccess) {
         setTimeout(() => onSuccess(), 2000);
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Password change error:", error);
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        typeof (error as { code?: string }).code === "string"
-      ) {
-        const errorCode = (error as { code: string }).code;
-        if (errorCode === "auth/wrong-password") {
-          setError("Current password is incorrect.");
-        } else if (errorCode === "auth/weak-password") {
-          setError("New password is too weak.");
-        } else if (errorCode === "auth/requires-recent-login") {
-          setError("Please log in again to change your password.");
-        } else {
-          setError("Failed to change password. Please try again.");
-        }
-      } else {
-        setError("Failed to change password. Please try again.");
-      }
+      setError("Failed to change password. Please try again.");
     } finally {
       setIsLoading(false);
     }

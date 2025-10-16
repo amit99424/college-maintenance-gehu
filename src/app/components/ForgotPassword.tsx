@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "@/firebase/config";
 
-interface ForgotPasswordLoginProps {
+interface ForgotPasswordProps {
   onClose: () => void;
 }
 
-export default function ForgotPasswordLogin({ onClose }: ForgotPasswordLoginProps) {
+export default function ForgotPassword({ onClose }: ForgotPasswordProps) {
   const [email, setEmail] = useState("");
   const [day, setDay] = useState("");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -22,41 +23,25 @@ export default function ForgotPasswordLogin({ onClose }: ForgotPasswordLoginProp
     setSuccess("");
     setIsLoading(true);
 
-    if (!email || !day || !month || !year || !newPassword) {
-      setError("Please fill in all fields.");
+    if (!email) {
+      setError("Please enter your email.");
       setIsLoading(false);
       return;
     }
 
-    const formattedDob = `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
-
     try {
-      const response = await fetch("/api/resetPasswordWithVerification", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: email.trim(), dob: formattedDob, newPassword }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess("Password reset successfully. You can now log in with your new password.");
-        setEmail("");
-        setDay("");
-        setMonth("");
-        setYear("");
-        setNewPassword("");
-        setTimeout(() => {
-          onClose();
-        }, 3000);
-      } else {
-        setError(data.error || "Failed to reset password.");
-      }
+      await sendPasswordResetEmail(auth, email.trim());
+      setSuccess("Password reset link sent to your email.");
+      setEmail("");
+      setDay("");
+      setMonth("");
+      setYear("");
+      setTimeout(() => {
+        onClose();
+      }, 3000);
     } catch (err) {
-      console.error("Error resetting password:", err);
-      setError("An error occurred. Please try again.");
+      console.error("Error sending reset email:", err);
+      setError("Failed to send reset email. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +82,6 @@ export default function ForgotPasswordLogin({ onClose }: ForgotPasswordLoginProp
             <select
               value={day}
               onChange={(e) => setDay(e.target.value)}
-              required
               className="flex-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             >
               <option value="">Day</option>
@@ -110,7 +94,6 @@ export default function ForgotPasswordLogin({ onClose }: ForgotPasswordLoginProp
             <select
               value={month}
               onChange={(e) => setMonth(e.target.value)}
-              required
               className="flex-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             >
               <option value="">Month</option>
@@ -123,7 +106,6 @@ export default function ForgotPasswordLogin({ onClose }: ForgotPasswordLoginProp
             <select
               value={year}
               onChange={(e) => setYear(e.target.value)}
-              required
               className="flex-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             >
               <option value="">Year</option>
@@ -138,18 +120,6 @@ export default function ForgotPasswordLogin({ onClose }: ForgotPasswordLoginProp
           </div>
         </div>
 
-        <div>
-          <label className="sr-only">New Password</label>
-          <input
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-          />
-        </div>
-
         <button
           type="submit"
           disabled={isLoading}
@@ -159,7 +129,7 @@ export default function ForgotPasswordLogin({ onClose }: ForgotPasswordLoginProp
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {isLoading ? "Resetting..." : "RESET PASSWORD"}
+          {isLoading ? "Sending..." : "SEND RESET LINK"}
         </button>
       </form>
     </div>

@@ -251,7 +251,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
       }
 
       // Add complaint to Firestore
-      await addDoc(collection(db, "complaints"), {
+      const complaintRef = await addDoc(collection(db, "complaints"), {
         title: formData.title,
         building: formData.building,
         room: formData.room,
@@ -266,6 +266,35 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         imageUrl,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+      });
+
+      // Create notifications for all admins
+      const { query, where, getDocs } = await import("firebase/firestore");
+      const adminQuery = query(collection(db, "users"), where("role", "==", "admin"));
+      const adminsSnapshot = await getDocs(adminQuery);
+      adminsSnapshot.forEach(async (doc) => {
+        await addDoc(collection(db, "notifications"), {
+          userId: doc.id,
+          message: `New complaint submitted: "${formData.title}" (${formData.category})`,
+          complaintId: complaintRef.id,
+          category: formData.category,
+          timestamp: serverTimestamp(),
+          isRead: false,
+        });
+      });
+
+      // Create notifications for all supervisors
+      const supervisorQuery = query(collection(db, "users"), where("role", "==", "supervisor"));
+      const supervisorsSnapshot = await getDocs(supervisorQuery);
+      supervisorsSnapshot.forEach(async (doc) => {
+        await addDoc(collection(db, "notifications"), {
+          userId: doc.id,
+          message: `New complaint submitted: "${formData.title}" (${formData.category})`,
+          complaintId: complaintRef.id,
+          category: formData.category,
+          timestamp: serverTimestamp(),
+          isRead: false,
+        });
       });
 
       setSubmitMessage("Complaint submitted successfully!");

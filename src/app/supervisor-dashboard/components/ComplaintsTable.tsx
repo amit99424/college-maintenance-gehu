@@ -11,12 +11,20 @@ import {
   doc,
   Timestamp,
   QueryConstraint,
+  getDoc,
+  addDoc,
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
 
 interface ComplaintsTableProps {
   category?: string;
+  userData?: {
+    name?: string;
+    email?: string;
+    role?: string;
+    [key: string]: unknown;
+  };
 }
 
 interface Complaint {
@@ -34,8 +42,9 @@ interface Complaint {
   [key: string]: unknown;
 }
 
-export default function ComplaintsTable({ category }: ComplaintsTableProps) {
+export default function ComplaintsTable({ category, userData }: ComplaintsTableProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [allComplaints, setAllComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,28 +56,13 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
 
-  const buildQueryConstraints = (): QueryConstraint[] => {
-    const constraints: QueryConstraint[] = [];
-    if (category) {
-      constraints.push(where("category", "==", category));
-    }
-    if (statusFilter.trim() !== "") {
-      constraints.push(where("status", "==", statusFilter));
-    }
-    if (buildingFilter.trim() !== "") {
-      constraints.push(where("building", "==", buildingFilter));
-    }
-    constraints.push(orderBy("createdAt", "desc"));
-    return constraints;
-  };
-
-  // Fetch complaints from Firestore with dynamic query constraints
+  // Fetch all complaints from Firestore for the category
   useEffect(() => {
     let isSubscribed = true;
 
-    const constraints = buildQueryConstraints();
-
-    const q = query(collection(db, "complaints"), ...constraints);
+    const q = category
+      ? query(collection(db, "complaints"), where("category", "==", category), orderBy("createdAt", "desc"))
+      : query(collection(db, "complaints"), orderBy("createdAt", "desc"));
 
     const unsubscribe = onSnapshot(
       q,
@@ -79,6 +73,7 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
           ...doc.data(),
         })) as Complaint[];
         setComplaints(complaintsData);
+        setAllComplaints(complaintsData);
         setLoading(false);
       },
       (error) => {
@@ -91,15 +86,7 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
       isSubscribed = false;
       unsubscribe();
     };
-  }, [
-    category,
-    statusFilter,
-    buildingFilter,
-    // stringify filters to keep dependency array stable
-    JSON.stringify(category),
-    JSON.stringify(statusFilter),
-    JSON.stringify(buildingFilter),
-  ]);
+  }, [category]);
 
   // Get unique buildings from complaints for building filter dropdown
   const uniqueBuildings = useMemo(() => {
@@ -117,9 +104,23 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
     return "Unknown";
   };
 
-  // Client-side filtering combining search and submittedBy filters
+  // Client-side filtering combining all filters
   const filteredComplaints = useMemo(() => {
     let filtered = complaints;
+
+    // Status filter
+    if (statusFilter.trim() !== "") {
+      filtered = filtered.filter(
+        (c) => c.status.toLowerCase() === statusFilter.trim().toLowerCase()
+      );
+    }
+
+    // Building filter
+    if (buildingFilter.trim() !== "") {
+      filtered = filtered.filter(
+        (c) => c.building.toLowerCase() === buildingFilter.trim().toLowerCase()
+      );
+    }
 
     // Search filter on title or description (case insensitive)
     if (searchTerm.trim() !== "") {
@@ -141,15 +142,35 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
     }
 
     return filtered;
-  }, [complaints, searchTerm, submittedByFilter]);
+  }, [complaints, searchTerm, statusFilter, buildingFilter, submittedByFilter]);
 
   // Handle status change update in Firestore
   const handleStatusChange = async (complaintId: string, newStatus: string) => {
     try {
+      // Update the complaint in the "complaints" collection
       await updateDoc(doc(db, "complaints", complaintId), {
         status: newStatus,
         updatedAt: new Date(),
+        lastUpdatedBy: "supervisor",
+        supervisorName: userData?.name || userData?.email || "Supervisor",
+        lastUpdatedByRole: "Supervisor",
       });
+
+      // Create notification for the student
+      const complaintDoc = await getDoc(doc(db, "complaints", complaintId));
+      if (complaintDoc.exists()) {
+        const complaintData = complaintDoc.data();
+        await addDoc(collection(db, "notifications"), {
+          userId: complaintData.userId,
+          message: `Your complaint "${complaintData.title}" is now ${newStatus}`,
+          complaintId: complaintId,
+          complaintTitle: complaintData.title,
+          createdAt: new Date(),
+          read: false,
+          updatedBy: userData?.name || userData?.email || "Supervisor",
+        });
+      }
+
       toast.success(`Complaint status updated to ${newStatus}`);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -160,10 +181,15 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
   // Handle reopen action for completed complaints
   const handleReopen = async (complaintId: string) => {
     try {
+      // Update the complaint in the "complaints" collection
       await updateDoc(doc(db, "complaints", complaintId), {
         status: "Reopened",
         updatedAt: new Date(),
+        lastUpdatedBy: "supervisor",
+        supervisorName: userData?.name || userData?.email || "Supervisor",
+        lastUpdatedByRole: "Supervisor",
       });
+
       toast.success("Complaint reopened successfully");
     } catch (error) {
       console.error("Error reopening complaint:", error);
@@ -249,10 +275,10 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         >
           <option value="">All Statuses</option>
-          <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-          <option value="Reopened">Reopened</option>
+          <option value="pending">Pending</option>
+          <option value="in progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="reopened">Reopened</option>
         </select>
 
         {/* Building Filter */}
@@ -453,45 +479,64 @@ export default function ComplaintsTable({ category }: ComplaintsTableProps) {
 
       {/* Modal */}
       {modalOpen && selectedComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transperant bg-opacity-20 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-8 relative transform transition-all duration-300 ease-in-out scale-100">
             <button
               onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold transition-colors duration-200"
               aria-label="Close modal"
             >
               &times;
             </button>
-            <h2 className="text-xl font-semibold mb-4">Complaint Details</h2>
-            <div className="space-y-2 text-gray-900">
-              <p>
-                <strong>Title:</strong> {selectedComplaint.title}
-              </p>
-              <p>
-                <strong>Description:</strong> {selectedComplaint.description}
-              </p>
-              <p>
-                <strong>Building:</strong> {selectedComplaint.building}
-              </p>
-              <p>
-                <strong>Room:</strong> {selectedComplaint.room}
-              </p>
-              <p>
-                <strong>Status:</strong>{" "}
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                    selectedComplaint.status
-                  )}`}
-                >
-                  {selectedComplaint.status}
-                </span>
-              </p>
-              <p>
-                <strong>Submitted By:</strong> {getUserTypeFromEmail(selectedComplaint.userEmail)}
-              </p>
-              <p>
-                <strong>Date:</strong> {formatDate(selectedComplaint.createdAt)}
-              </p>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Complaint Details</h2>
+              <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{selectedComplaint.title}</h3>
+                <p className="text-gray-700 leading-relaxed">{selectedComplaint.description}</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Building</span>
+                    <p className="text-gray-900 font-medium">{selectedComplaint.building}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Room</span>
+                    <p className="text-gray-900 font-medium">{selectedComplaint.room}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</span>
+                    <span
+                      className={`inline-block px-3 py-1 text-sm font-medium rounded-full mt-1 ${getStatusColor(
+                        selectedComplaint.status
+                      )}`}
+                    >
+                      {selectedComplaint.status}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Submitted By</span>
+                    <p className="text-gray-900 font-medium capitalize">{getUserTypeFromEmail(selectedComplaint.userEmail)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Date Submitted</span>
+                    <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

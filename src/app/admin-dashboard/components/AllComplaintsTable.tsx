@@ -11,6 +11,8 @@ import {
   doc,
   Timestamp,
   QueryConstraint,
+  getDoc,
+  addDoc,
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
@@ -163,6 +165,22 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
         lastUpdatedBy: "Admin", // Assuming admin name, can be passed as prop
         lastUpdatedByRole: "Admin",
       });
+
+      // Create notification for the student
+      const complaintDoc = await getDoc(doc(db, "complaints", complaintId));
+      if (complaintDoc.exists()) {
+        const complaintData = complaintDoc.data();
+        await addDoc(collection(db, "notifications"), {
+          userId: complaintData.userId,
+          message: `Your complaint "${complaintData.title}" is now ${newStatus}`,
+          complaintId: complaintId,
+          complaintTitle: complaintData.title,
+          createdAt: new Date(),
+          read: false,
+          updatedBy: "Admin",
+        });
+      }
+
       toast.success(`Complaint status updated to ${newStatus}`);
     } catch (error) {
       console.error("Error updating status:", error);

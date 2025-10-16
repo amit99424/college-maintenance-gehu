@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EnhancedDropdown from "./EnhancedDropdown";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db, auth } from "@/firebase/config";
 
 interface UserData {
   name?: string;
@@ -22,9 +24,29 @@ interface MenuItem {
   id: string;
   label: string;
   icon: string;
+  badge?: number;
 }
 
 export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen, onLogout }: SidebarProps) {
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", user.uid),
+      where("read", "==", false)
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      setUnreadCount(querySnapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const menuItems: MenuItem[] = [
     {
       id: "submit-complaint",
@@ -105,6 +127,11 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
               >
                 <span className="text-xl mr-3">{item.icon}</span>
                 <span className="font-medium">{item.label}</span>
+                {item.badge && item.badge > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    {item.badge > 99 ? "99+" : item.badge}
+                  </span>
+                )}
               </button>
             </div>
           ))}

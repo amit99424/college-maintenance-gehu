@@ -10,7 +10,7 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
-import ForgotPasswordLogin from "@/app/components/ForgotPasswordLogin";
+
 
 const MAINTENANCE_KEY = "gehuservice@04";
 
@@ -30,8 +30,7 @@ export default function LoginPage() {
   const [maintenanceKeyInput, setMaintenanceKeyInput] = useState("");
   const [pendingUser, setPendingUser] = useState(null);
 
-  // forget password modal states
-  const [showForgetPasswordModal, setShowForgetPasswordModal] = useState(false);
+  // Removed forget password modal states
 
   const router = useRouter();
 
@@ -122,44 +121,46 @@ export default function LoginPage() {
         return;
       }
 
-      // Query Firestore users collection for email
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", emailTrimmed));
-      const querySnapshot = await getDocs(q);
+      // Call the login API
+      const loginResponse = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: emailTrimmed,
+          password: passwordTrimmed,
+        }),
+      });
 
-      if (querySnapshot.empty) {
-        setCaptchaError("Wrong email.");
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        setCaptchaError(loginData.error);
         setIsLoading(false);
         return;
       }
 
-      // Email exists, proceed with sign-in
-      const userCred = await signInWithEmailAndPassword(
-        auth,
-        emailTrimmed,
-        passwordTrimmed
-      );
+      // Login successful
+      const fullUserData = loginData.user;
 
-      const docSnap = await getDoc(doc(db, "users", userCred.user.uid));
-
-      if (!docSnap.exists()) {
-        setCaptchaError("No user data found in database!");
-        setIsLoading(false);
-        return;
+      // Try Firebase Auth sign-in for session management (optional)
+      try {
+        await signInWithEmailAndPassword(auth, emailTrimmed, passwordTrimmed);
+      } catch (authError) {
+        console.log("Firebase Auth failed, but login verified:", authError);
       }
 
-      const userData = { ...docSnap.data(), uid: userCred.user.uid };
-
-      localStorage.setItem("userData", JSON.stringify(userData));
+      localStorage.setItem("userData", JSON.stringify(fullUserData));
 
       if (emailTrimmed.endsWith('@staff.com')) {
         router.push("/staff-dashboard");
-      } else if (userData.role === "student") {
+      } else if (fullUserData.role === "student") {
         router.push("/student-dashboard");
-      } else if (userData.role === "supervisor") {
+      } else if (fullUserData.role === "supervisor") {
         router.push("/supervisor-dashboard");
-      } else if (userData.role === "maintenance") {
-        setPendingUser(userData);
+      } else if (fullUserData.role === "maintenance") {
+        setPendingUser(fullUserData);
         setShowMaintenanceKeyModal(true);
       } else {
         setCaptchaError("Unknown role. Please contact admin.");
@@ -194,9 +195,11 @@ export default function LoginPage() {
   const handleMaintenanceKeySubmit = () => {
     if (maintenanceKeyInput === MAINTENANCE_KEY) {
       setShowMaintenanceKeyModal(false);
+      setMaintenanceKeyInput("");
       router.push("/admin-dashboard");
     } else {
       alert("Invalid Maintenance Key!");
+      setMaintenanceKeyInput("");
     }
   };
 
@@ -363,6 +366,18 @@ export default function LoginPage() {
                   </p>
                 )}
               </div>
+
+            {/* Forgot Password Link */}
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => router.push("/forgot-password")}
+                className="text-blue-600 hover:underline text-xs sm:text-sm"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -375,18 +390,7 @@ export default function LoginPage() {
             >
               {isLoading ? "Processing..." : "LOGIN"}
             </button>
-            {/* Forget Password Button */}
-            <div className="text-right mt-2 mb-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForgetPasswordModal(true);
-                }}
-                className="text-sm text-blue-600 hover:underline focus:outline-none"
-              >
-                Forgot Password?
-              </button>
-            </div>
+
             {/* Sign Up Text */}
             <p className="text-center text-xs sm:text-sm text-gray-600">
               Don&apos;t have an account?{" "}
@@ -402,19 +406,22 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Maintenance Key Inline Input */}
-      {showMaintenanceKeyModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
-            <h3 className="text-sm sm:text-base font-semibold mb-4">Enter Maintenance Key</h3>
+      {/* Maintenance Key Modal */}
+      <Dialog
+        open={showMaintenanceKeyModal}
+        onOpenChange={setShowMaintenanceKeyModal}
+      >
+        <DialogContent className="p-4 sm:p-6 rounded-lg shadow-lg bg-white/90 text-gray-900 max-w-[95vw] sm:max-w-sm mx-auto mt-10 sm:mt-20 relative">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-4">Enter Maintenance Key</h3>
             <input
               type="password"
               placeholder="Enter Key"
               value={maintenanceKeyInput}
               onChange={(e) => setMaintenanceKeyInput(e.target.value)}
-              className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 text-sm sm:text-base rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
             />
-            <div className="flex justify-end gap-2 mt-4 flex-wrap sm:flex-nowrap">
+            <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => setShowMaintenanceKeyModal(false)}
                 className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto"
@@ -429,18 +436,10 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Forget Password Modal */}
-      <Dialog
-        open={showForgetPasswordModal}
-        onOpenChange={setShowForgetPasswordModal}
-      >
-        <DialogContent className="p-4 sm:p-6 rounded-lg shadow-lg bg-white/90 text-gray-900 max-w-[95vw] sm:max-w-sm mx-auto mt-10 sm:mt-20 relative">
-          <ForgotPasswordLogin onClose={() => setShowForgetPasswordModal(false)} />
         </DialogContent>
       </Dialog>
+
+
     </div>
   );
 }

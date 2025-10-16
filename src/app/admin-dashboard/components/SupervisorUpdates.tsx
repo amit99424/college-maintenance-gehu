@@ -1,43 +1,45 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/firebase/config";
 
 type SupervisorUpdatesProps = Record<string, never>;
 
-interface Complaint {
+interface SupervisorUpdate {
   id: string;
+  complaintId: string;
   title: string;
-  description: string;
-  building: string;
-  room: string;
   status: string;
-  category: string;
-  lastUpdatedBy?: string;
-  lastUpdatedByRole?: string;
-  updatedAt?: Timestamp | Date;
-  createdAt: Timestamp | Date;
-  [key: string]: unknown;
+  supervisorName: string;
+  updatedAt: Timestamp | Date;
+  lastUpdatedBy: string;
 }
 
 export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [updates, setUpdates] = useState<SupervisorUpdate[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(
-      collection(db, "complaints"),
-      where("lastUpdatedByRole", "==", "Supervisor"),
-      orderBy("updatedAt", "desc")
-    );
+    const q = query(collection(db, "complaints"), orderBy("updatedAt", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const complaintsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Complaint[];
-      setComplaints(complaintsData);
+      const updatesData = snapshot.docs
+        .filter((doc) => doc.data().lastUpdatedBy === "supervisor")
+        .map((doc) => ({
+          id: doc.id,
+          complaintId: doc.id,
+          title: doc.data().title || "Untitled Complaint",
+          status: doc.data().status || "Unknown",
+          supervisorName: doc.data().supervisorName || "Unknown Supervisor",
+          updatedAt: doc.data().updatedAt,
+          lastUpdatedBy: doc.data().lastUpdatedBy,
+        })) as SupervisorUpdate[];
+      console.log("Fetched supervisor updates:", updatesData);
+      setUpdates(updatesData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching supervisor updates:", error);
       setLoading(false);
     });
 
@@ -108,7 +110,7 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-gray-900 font-semibold mb-6">Supervisor Updates</h3>
 
-      {complaints.length === 0 ? (
+      {updates.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-4xl mb-4">🔄</div>
           <p className="text-gray-500 font-medium">No supervisor updates found.</p>
@@ -116,46 +118,35 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {complaints.map((complaint) => (
+          {updates.map((update) => (
             <div
-              key={complaint.id}
+              key={update.id}
               className="bg-gray-50 p-4 rounded-lg shadow-sm hover:bg-gray-100 transition-colors duration-200 border-l-4 border-blue-500"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">{complaint.title}</h4>
-                  <p className="text-sm text-gray-600 mb-2">{complaint.description}</p>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                    <span>
-                      <strong>Building:</strong> {complaint.building}
-                    </span>
-                    <span>
-                      <strong>Room:</strong> {complaint.room}
-                    </span>
-                    <span>
-                      <strong>Category:</strong> {complaint.category}
-                    </span>
-                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-1">{update.title}</h4>
+                  <p className="text-sm text-gray-600 mb-2">Complaint ID: {update.complaintId}</p>
                 </div>
                 <div className="text-right">
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full mb-2 inline-block ${getStatusColor(
-                      complaint.status
+                      update.status
                     )}`}
                   >
-                    {complaint.status}
+                    {update.status}
                   </span>
                   <div className="text-xs text-gray-500">
-                    {getTimeAgo(complaint.updatedAt)}
+                    {getTimeAgo(update.updatedAt)}
                   </div>
                 </div>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="text-gray-700">
-                  <strong>Updated by:</strong> {complaint.lastUpdatedBy || "Unknown Supervisor"}
+                  <strong>Updated by:</strong> {update.supervisorName}
                 </div>
                 <div className="text-gray-500">
-                  {formatDate(complaint.updatedAt)}
+                  {formatDate(update.updatedAt)}
                 </div>
               </div>
             </div>
@@ -166,7 +157,7 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
       {/* Summary */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="text-sm text-gray-600">
-          Showing {complaints.length} supervisor update{complaints.length !== 1 ? "s" : ""}
+          Showing {updates.length} supervisor update{updates.length !== 1 ? "s" : ""}
         </div>
       </div>
     </div>
