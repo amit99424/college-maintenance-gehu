@@ -42,11 +42,6 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
       icon: "📈",
     },
     {
-      id: "notifications",
-      label: "Notifications",
-      icon: "🔔",
-    },
-    {
       id: "profile",
       label: "Profile",
       icon: "👤",

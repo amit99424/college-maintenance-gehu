@@ -427,13 +427,13 @@ export default function LoginPage() {
             <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => setShowMaintenanceKeyModal(false)}
-                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto"
+                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-400 rounded hover:bg-gray-400 w-full sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 onClick={handleMaintenanceKeySubmit}
-                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
+                className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
               >
                 Submit
               </button>

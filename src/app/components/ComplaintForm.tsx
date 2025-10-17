@@ -278,8 +278,8 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
           message: `New complaint submitted: "${formData.title}" (${formData.category})`,
           complaintId: complaintRef.id,
           category: formData.category,
-          timestamp: serverTimestamp(),
-          isRead: false,
+          createdAt: serverTimestamp(),
+          read: false,
         });
       });
 
@@ -292,8 +292,8 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
           message: `New complaint submitted: "${formData.title}" (${formData.category})`,
           complaintId: complaintRef.id,
           category: formData.category,
-          timestamp: serverTimestamp(),
-          isRead: false,
+          createdAt: serverTimestamp(),
+          read: false,
         });
       });
 

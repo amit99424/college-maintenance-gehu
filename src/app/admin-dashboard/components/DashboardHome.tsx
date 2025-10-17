@@ -152,7 +152,7 @@ export default function DashboardHome({ setActiveSection }: DashboardHomeProps) 
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Welcome Section */}
+      {/* {Welcome Section} */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-xl text-white shadow-lg">
         <h2 className="text-2xl font-bold font-poppins mb-2">Welcome back, Admin!</h2>
         <p className="text-blue-100">Here&apos;s an overview of all complaints in the system</p>

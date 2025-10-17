@@ -196,7 +196,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="flex-grow min-w-0 md:ml-64 p-4 md:p-8">
         {/* Header */}
-        <div className="sticky top-0 z-20 pb-4 mb-6 border-b border-gray-200 flex items-center justify-between bg-white p-4 rounded-lg shadow-md transition-all duration-300">
+        <div className="sticky top-0 z-20 pb-4 mb-6 border-b border-purple-700 flex items-center justify-between bg-white p-4 rounded-lg shadow-md transition-all duration-300">
           <h1 className="text-xl md:text-2xl font-bold text-gray-800 font-poppins">
             Admin Dashboard
           </h1>
