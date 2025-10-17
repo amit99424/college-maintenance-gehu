@@ -167,10 +167,10 @@ export default function ComplaintsList() {
 
             {/* Filter Buttons */}
             <div className="flex flex-wrap space-x-2 space-y-2 md:space-y-0">
-              {["all", "pending", "in-progress", "completed", "Reopened"].map((status) => (
+              {(["all", "pending", "in-progress", "completed", "Reopened"] as const).map((status) => (
                 <button
                   key={status}
-                  onClick={() => setFilter(status as any)}
+                  onClick={() => setFilter(status)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     filter === status
                       ? status === "pending"
