@@ -1,9 +1,8 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '@/firebase/config';
+import { db } from '../../firebase/config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -14,33 +13,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
+  const normalizedEmail = email.toLowerCase().trim();
+  const trimmedPassword = password.trim();
+
   try {
-    // Query Firestore users collection for email
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("email", "==", email.trim()));
+    const q = query(usersRef, where("email", "==", normalizedEmail));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Email not found' });
     }
 
     const userDoc = querySnapshot.docs[0];
     const userData = userDoc.data();
 
-    // Compare the entered password with the hashed password from Firestore
-    const match = await bcrypt.compare(password.trim(), userData.password);
-
-    if (!match) {
+    if (!userData.password || typeof userData.password !== 'string') {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Return user data (excluding password)
+    let match = false;
+    if (userData.password.startsWith('$2b$') || userData.password.startsWith('$2a$')) {
+      match = await bcrypt.compare(trimmedPassword, userData.password);
+    } else {
+      match = trimmedPassword === userData.password;
+    }
+
+    if (!match) {
+      return res.status(401).json({ error: 'Incorrect password' });
+    }
+
     const { password: _, ...userWithoutPassword } = userData;
     const fullUserData = { ...userWithoutPassword, uid: userDoc.id };
 
     res.status(200).json({
-      message: 'Login successful',
-      user: fullUserData
+      ok: true,
+      userData: fullUserData
     });
   } catch (error) {
     console.error('Login error:', error);

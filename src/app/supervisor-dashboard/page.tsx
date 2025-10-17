@@ -27,6 +27,7 @@ interface UserData {
 }
 
 export default function SupervisorDashboard() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -47,6 +48,7 @@ export default function SupervisorDashboard() {
     const storedUserData = localStorage.getItem("userData");
     if (storedUserData) {
       const parsedUserData = JSON.parse(storedUserData);
+      console.log("DEBUG: Supervisor dashboard userData loaded from localStorage:", parsedUserData);
       setUserData(parsedUserData);
       setLoading(false);
 
@@ -60,6 +62,7 @@ export default function SupervisorDashboard() {
       return () => unsubscribe();
     } else {
       // No userData in localStorage, redirect to login
+      console.log("DEBUG: No userData in localStorage, redirecting to login");
       router.push("/login");
       setLoading(false);
     }
@@ -102,7 +105,6 @@ export default function SupervisorDashboard() {
       console.error("Failed to clear all notifications:", error);
     }
   };
-  const router = useRouter();
 
   const handleLogout = async () => {
     try {

@@ -22,8 +22,8 @@ export default function ForgotPasswordPage() {
     setError("");
     setSuccess("");
 
-    if (!email || !dob) {
-      setError("Please fill in all fields.");
+    if (!email) {
+      setError("Please enter your email.");
       return;
     }
 
@@ -36,7 +36,6 @@ export default function ForgotPasswordPage() {
         },
         body: JSON.stringify({
           email: email.trim(),
-          dob: dob.toISOString().split('T')[0], // Format as YYYY-MM-DD
         }),
       });
 
@@ -85,7 +84,6 @@ export default function ForgotPasswordPage() {
         },
         body: JSON.stringify({
           email: email.trim(),
-          dob: dob.toISOString().split('T')[0], // Format as YYYY-MM-DD
           newPassword: newPassword,
         }),
       });

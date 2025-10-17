@@ -33,6 +33,7 @@ interface Notification {
 }
 
 export default function StaffDashboard() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeSection, setActiveSection] = useState("submit-complaint");
@@ -41,13 +42,13 @@ export default function StaffDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     // Check localStorage first
     const storedUserData = localStorage.getItem("userData");
     if (storedUserData) {
       const parsedUserData = JSON.parse(storedUserData);
+      console.log("DEBUG: Staff dashboard userData loaded from localStorage:", parsedUserData);
       setUserData(parsedUserData);
       setLoading(false);
 
@@ -61,6 +62,7 @@ export default function StaffDashboard() {
       return () => unsubscribe();
     } else {
       // No userData in localStorage, redirect to login
+      console.log("DEBUG: No userData in localStorage, redirecting to login");
       router.push("/login");
       setLoading(false);
     }
@@ -188,7 +190,7 @@ export default function StaffDashboard() {
       {/* Main Content */}
       <main className="flex-1 md:ml-64 p-4 md:p-8">
         {/* Header */}
-        <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between bg-blue-400 p-4 rounded">
+        <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between bg-white p-4 rounded">
           <div className="flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
             <img
               src="/university-logo.png"

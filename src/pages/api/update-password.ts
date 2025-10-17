@@ -8,10 +8,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, dob, newPassword } = req.body;
+  const { email, newPassword } = req.body;
 
-  if (!email || !dob || !newPassword) {
-    return res.status(400).json({ error: 'Email, Date of Birth, and new password are required' });
+  if (!email || !newPassword) {
+    return res.status(400).json({ error: 'Email and new password are required' });
   }
 
   const trimmedNewPassword = newPassword.trim();
@@ -21,9 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Query Firestore for user with matching email and dob
+    // Query Firestore for user with matching email
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email), where('dob', '==', dob));
+    const q = query(usersRef, where('email', '==', email));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {

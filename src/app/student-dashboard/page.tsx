@@ -33,6 +33,7 @@ interface Notification {
 }
 
 export default function StudentDashboard() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeSection, setActiveSection] = useState("submit-complaint");
@@ -43,7 +44,6 @@ export default function StudentDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     // Check localStorage first

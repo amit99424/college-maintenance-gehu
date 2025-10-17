@@ -7,20 +7,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, dob } = req.body;
+  const { email } = req.body;
 
-  if (!email || !dob) {
-    return res.status(400).json({ error: 'Email and Date of Birth are required' });
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
   }
 
   try {
-    // Query Firestore for user with matching email and dob
+    // Query Firestore for user with matching email
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email), where('dob', '==', dob));
+    const q = query(usersRef, where('email', '==', email));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ error: 'User details not found or incorrect.' });
+      return res.status(404).json({ error: 'User not found.' });
     }
 
     // User found

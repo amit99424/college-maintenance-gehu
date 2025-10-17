@@ -142,7 +142,7 @@ export default function LoginPage() {
       }
 
       // Login successful
-      const fullUserData = loginData.user;
+      const fullUserData = loginData.userData;
 
       // Try Firebase Auth sign-in for session management (optional)
       try {
@@ -153,15 +153,18 @@ export default function LoginPage() {
 
       localStorage.setItem("userData", JSON.stringify(fullUserData));
 
-      if (emailTrimmed.endsWith('@staff.com')) {
+      const role = fullUserData.role?.toLowerCase();
+      if (role === "staff") {
         router.push("/staff-dashboard");
-      } else if (fullUserData.role === "student") {
+      } else if (role === "student") {
         router.push("/student-dashboard");
-      } else if (fullUserData.role === "supervisor") {
+      } else if (role === "supervisor") {
         router.push("/supervisor-dashboard");
-      } else if (fullUserData.role === "maintenance") {
+      } else if (role === "maintenance") {
         setPendingUser(fullUserData);
         setShowMaintenanceKeyModal(true);
+      } else if (role === "admin") {
+        router.push("/admin-dashboard");
       } else {
         setCaptchaError("Unknown role. Please contact admin.");
         router.push("/");

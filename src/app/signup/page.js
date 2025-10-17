@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
 import { doc, setDoc } from "firebase/firestore";
+import bcrypt from "bcryptjs";
 import Image from "next/image";
 
 export default function SignupPage() {
@@ -86,12 +87,15 @@ export default function SignupPage() {
         password
       );
 
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       const userData = {
         email,
         role,
         name: name.trim(),
         createdAt: new Date().toISOString(),
         dob,
+        password: hashedPassword,
       };
 
       if (role !== "staff" && role !== "supervisor" && role !== "maintenance") {
@@ -357,4 +361,4 @@ export default function SignupPage() {
       </div>
     </div>
   );
-} 
+}
