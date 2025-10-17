@@ -9,9 +9,12 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  deleteDoc,
   Timestamp
 } from "firebase/firestore";
 import { db, auth } from "@/firebase/config";
+import Image from "next/image";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 interface Complaint {
   id: string;
@@ -36,6 +39,8 @@ export default function ReopenComplaint() {
   const [reopenReason, setReopenReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -44,7 +49,7 @@ export default function ReopenComplaint() {
     const q = query(
       collection(db, "complaints"),
       where("userId", "==", user.uid),
-      where("status", "==", "resolved"),
+      where("status", "in", ["resolved", "Reopened"]),
       orderBy("createdAt", "desc")
     );
 
@@ -96,6 +101,29 @@ export default function ReopenComplaint() {
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
+  const openDialog = (complaint: Complaint) => {
+    setSelectedComplaint(complaint);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setSelectedComplaint(null);
+    setIsDialogOpen(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this complaint?")) return;
+    setDeletingId(id);
+    try {
+      await deleteDoc(doc(db, "complaints", id));
+      setDeletingId(null);
+    } catch (error) {
+      console.error("Failed to delete complaint:", error);
+      setDeletingId(null);
+      alert("Failed to delete complaint. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -110,7 +138,7 @@ export default function ReopenComplaint() {
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">
-          Reopen Resolved Complaints
+          Reopen Complaints
         </h2>
 
         {message && (
@@ -155,12 +183,21 @@ export default function ReopenComplaint() {
                   <span className="font-medium">ID: {complaint.id.slice(0, 8)}...</span>
                 </div>
 
-                <button
-                  onClick={() => setSelectedComplaint(complaint)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Reopen Complaint
-                </button>
+                <div className="mt-4 flex space-x-2">
+                  <button
+                    onClick={() => openDialog(complaint)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => handleDelete(complaint.id)}
+                    disabled={deletingId === complaint.id}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -168,20 +205,36 @@ export default function ReopenComplaint() {
 
         {/* Reopen Modal */}
         {selectedComplaint && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Reopen Complaint</h3>
+          <div className="fixed inset-0 bg-white/5 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg border border-blue-100 transform transition-all duration-300 scale-100">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-blue-900">Reopen Complaint</h3>
+                <button
+                  onClick={() => {
+                    setSelectedComplaint(null);
+                    setReopenReason("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-              <div className="mb-4">
-                <h4 className="font-medium text-gray-700 mb-2">{selectedComplaint.title}</h4>
-                <p className="text-sm text-gray-600">
-                  {selectedComplaint.building} - Room {selectedComplaint.room}
-                </p>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 border border-blue-100">
+                <h4 className="font-semibold text-blue-900 mb-2 text-lg">{selectedComplaint.title}</h4>
+                <div className="flex items-center space-x-2 text-sm text-blue-700">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span>{selectedComplaint.building} - Room {selectedComplaint.room}</span>
+                </div>
               </div>
 
               <form onSubmit={handleReopen}>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Reason for Reopening *
                   </label>
                   <textarea
@@ -190,7 +243,7 @@ export default function ReopenComplaint() {
                     placeholder="Please explain why you need to reopen this complaint..."
                     rows={4}
                     required
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none bg-white text-gray-900 placeholder-gray-500 focus:placeholder-gray-400"
                   />
                 </div>
 
@@ -201,26 +254,106 @@ export default function ReopenComplaint() {
                       setSelectedComplaint(null);
                       setReopenReason("");
                     }}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium shadow-sm"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting || !reopenReason.trim()}
-                    className={`px-4 py-2 rounded-lg text-white font-medium transition-colors ${
+                    className={`px-6 py-3 rounded-xl text-white font-semibold transition-all duration-200 shadow-lg ${
                       isSubmitting || !reopenReason.trim()
                         ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-blue-600 hover:bg-blue-700"
+                        : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105"
                     }`}
                   >
-                    {isSubmitting ? "Reopening..." : "Reopen Complaint"}
+                    {isSubmitting ? (
+                      <div className="flex items-center space-x-2">
+                        <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Reopening...</span>
+                      </div>
+                    ) : (
+                      "Reopen Complaint"
+                    )}
                   </button>
                 </div>
               </form>
             </div>
           </div>
         )}
+
+        {/* View Details Modal */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-4xl w-full p-8">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">
+                Complaint Details
+              </DialogTitle>
+              <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
+            </DialogHeader>
+            {selectedComplaint && (
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{selectedComplaint.title}</h3>
+                  <p className="text-gray-700 leading-relaxed">{selectedComplaint.description}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Building</span>
+                      <p className="text-gray-900 font-medium">{selectedComplaint.building}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Room</span>
+                      <p className="text-gray-900 font-medium">{selectedComplaint.room}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</span>
+                      <span className="inline-block px-3 py-1 text-sm font-medium rounded-full mt-1 bg-green-100 text-green-800">
+                        {selectedComplaint.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Category</span>
+                      <p className="text-gray-900 font-medium">{selectedComplaint.category}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Date Submitted</span>
+                      <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
+                    </div>
+                  </div>
+                </div>
+                {selectedComplaint.imageUrl && (
+                  <div className="mt-4">
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Image</span>
+                    <div className="mt-2">
+                      <Image
+                        src={selectedComplaint.imageUrl}
+                        alt="Complaint"
+                        width={400}
+                        height={300}
+                        className="w-full max-w-md h-auto object-cover rounded-lg"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <button
+                onClick={closeDialog}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+              >
+                Close
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

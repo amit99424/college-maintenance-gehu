@@ -35,6 +35,7 @@ interface Complaint {
   category: string;
   lastUpdatedBy?: string;
   lastUpdatedByRole?: string;
+  preferredTime?: string;
   [key: string]: unknown;
 }
 
@@ -283,7 +284,7 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
         >
           <option value="">All Statuses</option>
           <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
+          <option value="in-progress">In Progress</option>
           <option value="Completed">Completed</option>
           <option value="Reopened">Reopened</option>
         </select>
@@ -416,7 +417,7 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
                           className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         >
                           <option value="pending">Pending</option>
-                          <option value="in progress">In Progress</option>
+                          <option value="in-progress">In Progress</option>
                           <option value="completed">Completed</option>
                         </select>
                       ) : (
@@ -488,7 +489,7 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
                     className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
                   >
                     <option value="pending">Pending</option>
-                    <option value="in progress">In Progress</option>
+                    <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
                   </select>
                 ) : (
@@ -563,6 +564,9 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
               </p>
               <p>
                 <strong>Date:</strong> {formatDate(selectedComplaint.createdAt)}
+              </p>
+              <p>
+                <strong>Time Slot:</strong> {selectedComplaint.preferredTime || "N/A"}
               </p>
             </div>
           </div>

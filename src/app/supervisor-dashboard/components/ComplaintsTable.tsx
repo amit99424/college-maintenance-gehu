@@ -39,6 +39,7 @@ interface Complaint {
   createdAt: Timestamp | Date;
   updatedAt?: Timestamp | Date;
   category: string;
+  preferredTime?: string;
   [key: string]: unknown;
 }
 
@@ -276,7 +277,7 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
         >
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
-          <option value="in progress">In Progress</option>
+          <option value="in-progress">In Progress</option>
           <option value="completed">Completed</option>
           <option value="reopened">Reopened</option>
         </select>
@@ -384,7 +385,7 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
                           className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         >
                           <option value="pending">Pending</option>
-                          <option value="in progress">In Progress</option>
+                          <option value="in-progress">In Progress</option>
                           <option value="completed">Completed</option>
                         </select>
                       ) : (
@@ -449,7 +450,7 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
                     className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
                   >
                     <option value="pending">Pending</option>
-                    <option value="in progress">In Progress</option>
+                    <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
                   </select>
                 ) : (
@@ -526,6 +527,10 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
                   <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Date Submitted</span>
                     <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Time Slot</span>
+                    <p className="text-gray-900 font-medium">{selectedComplaint.preferredTime || "N/A"}</p>
                   </div>
                 </div>
               </div>
