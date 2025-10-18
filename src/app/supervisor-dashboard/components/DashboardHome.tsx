@@ -49,8 +49,8 @@ export default function DashboardHome({ category, setActiveSection, setStatusFil
       let newToday = 0;
       let resolved24h = 0;
       let totalCompleted = 0;
-      let totalComplaints = complaintsData.length;
-      let responseTimes: number[] = [];
+      const totalComplaints = complaintsData.length;
+      const responseTimes: number[] = [];
 
       complaintsData.forEach(complaint => {
         const createdAt = complaint.createdAt instanceof Timestamp ? complaint.createdAt.toDate() : new Date(complaint.createdAt as string);
