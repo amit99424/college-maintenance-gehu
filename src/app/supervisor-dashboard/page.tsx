@@ -1,5 +1,5 @@
 "use client";
-
+  
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
@@ -35,6 +35,7 @@ export default function SupervisorDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
 
   interface Notification {
     id: string;
@@ -106,6 +107,14 @@ export default function SupervisorDashboard() {
     }
   };
 
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await updateDoc(doc(db, "notifications", id), { read: true });
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -119,9 +128,9 @@ export default function SupervisorDashboard() {
   const renderActiveSection = () => {
     switch (activeSection) {
       case "dashboard":
-        return <DashboardHome category={userData?.category} setActiveSection={setActiveSection} />;
+        return <DashboardHome category={userData?.category} setActiveSection={setActiveSection} setStatusFilter={setStatusFilter} />;
       case "my-complaints":
-        return <ComplaintsTable category={userData?.category} userData={userData || undefined} />;
+        return <ComplaintsTable category={userData?.category} userData={userData || undefined} initialStatusFilter={statusFilter} />;
       case "analytics":
         return <Analytics category={userData?.category} />;
       case "notifications":
@@ -149,9 +158,9 @@ export default function SupervisorDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white transition-colors duration-300">
+    <div className="flex min-h-screen overflow-x-hidden" style={{ backgroundColor: 'var(--main-bg)' }}>
       {/* Sidebar for desktop */}
-      <aside className="hidden md:block w-64 fixed top-0 left-0 h-full bg-white shadow-lg z-40 transition-colors duration-300">
+      <aside className="hidden md:block w-64 fixed top-0 left-0 h-full shadow-md z-40" style={{ backgroundColor: 'var(--sidebar-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
         <Sidebar
           activeSection={activeSection}
           setActiveSection={setActiveSection}
@@ -177,9 +186,10 @@ export default function SupervisorDashboard() {
         />
         {/* Sidebar Panel */}
         <aside
-          className={`relative w-64 bg-white shadow-xl h-full z-50 transition-transform duration-300 transform ${
+          className={`relative w-64 shadow-lg h-full z-50 transition-transform duration-300 transform ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
+          style={{ backgroundColor: 'var(--sidebar-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}
         >
           <Sidebar
             activeSection={activeSection}
@@ -193,10 +203,10 @@ export default function SupervisorDashboard() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-grow min-w-0 md:ml-64 p-4 md:p-8">
+      <main className="flex-1 md:ml-64 p-2 md:p-4 w-full">
         {/* Header */}
-        <div className="sticky top-0 z-20 pb-4 mb-6 border-b border-gray-200 flex items-center justify-between bg-white p-4 rounded-lg shadow-md transition-all duration-300">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800 font-poppins">
+        <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between p-2 sm:p-4 rounded w-full" style={{ backgroundColor: 'var(--header-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800 font-poppins truncate overflow-hidden whitespace-nowrap">
             {userData?.category ? `${userData.category} Supervisor Dashboard` : "Supervisor Dashboard"}
           </h1>
           <div className="relative flex items-center space-x-3 z-50">
@@ -205,6 +215,7 @@ export default function SupervisorDashboard() {
               isOpen={isNotificationOpen}
               onClose={() => setIsNotificationOpen(!isNotificationOpen)}
               onClearAll={handleClearAll}
+              onMarkAsRead={handleMarkAsRead}
             />
 
             {/* Hamburger menu button for mobile */}

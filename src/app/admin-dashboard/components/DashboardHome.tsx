@@ -6,6 +6,7 @@ import { db } from "@/firebase/config";
 
 interface DashboardHomeProps {
   setActiveSection: (section: string) => void;
+  setStatusFilter?: (status: string) => void;
 }
 
 interface Complaint {
@@ -19,7 +20,7 @@ interface Complaint {
   [key: string]: unknown;
 }
 
-export default function DashboardHome({ setActiveSection }: DashboardHomeProps) {
+export default function DashboardHome({ setActiveSection, setStatusFilter }: DashboardHomeProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -93,7 +94,7 @@ export default function DashboardHome({ setActiveSection }: DashboardHomeProps) 
     {
       title: "In Progress",
       count: statusCounts["in-progress"],
-      status: "in-progress",
+      status: "in progress",
       color: "bg-yellow-200 border-yellow-400 text-yellow-900 hover:bg-yellow-300",
       icon: "🔄"
     },
@@ -164,7 +165,12 @@ export default function DashboardHome({ setActiveSection }: DashboardHomeProps) 
           <div
             key={card.status}
             className={`bg-white p-6 rounded-xl shadow-lg border-l-4 cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 transform ${card.color}`}
-            onClick={() => setActiveSection("all-complaints")}
+            onClick={() => {
+              if (card.status !== "total") {
+                setStatusFilter && setStatusFilter(card.status);
+              }
+              setActiveSection("all-complaints");
+            }}
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="flex items-center justify-between mb-4">

@@ -116,6 +116,14 @@ export default function StaffDashboard() {
     }
   };
 
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await updateDoc(doc(db, "notifications", id), { read: true });
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+  };
+
   const renderActiveSection = () => {
     switch (activeSection) {
       case "submit-complaint":
@@ -152,9 +160,9 @@ export default function StaffDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen overflow-x-hidden" style={{ backgroundColor: 'var(--main-bg)' }}>
       {/* Sidebar for desktop */}
-      <aside className="hidden md:block w-64 fixed top-0 left-0 h-full bg-blue-100 shadow-md z-40">
+      <aside className="hidden md:block w-64 fixed top-0 left-0 h-full shadow-md z-40" style={{ backgroundColor: 'var(--sidebar-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
         <Sidebar
           activeSection={activeSection}
           setActiveSection={setActiveSection}
@@ -174,7 +182,7 @@ export default function StaffDashboard() {
             onClick={() => setIsSidebarOpen(false)}
           />
           {/* Sidebar Panel */}
-          <aside className="relative w-64 bg-blue-100 shadow-lg h-full z-50">
+          <aside className="relative w-64 shadow-lg h-full z-50" style={{ backgroundColor: 'var(--sidebar-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
             <Sidebar
               activeSection={activeSection}
               setActiveSection={setActiveSection}
@@ -188,9 +196,9 @@ export default function StaffDashboard() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-4 md:p-8">
+      <main className="flex-1 md:ml-64 p-2 md:p-8 w-full">
         {/* Header */}
-        <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between bg-green-300 p-4 rounded">
+        <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between p-2 sm:p-4 rounded w-full" style={{ backgroundColor: 'var(--header-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
           <div className="flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
             <img
               src="/university-logo.png"
@@ -207,12 +215,13 @@ export default function StaffDashboard() {
               isOpen={isNotificationOpen}
               onClose={() => setIsNotificationOpen(!isNotificationOpen)}
               onClearAll={handleClearAll}
+              onMarkAsRead={handleMarkAsRead}
             />
 
             {/* Hamburger for Mobile */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-200 bg-blue-900 text-white shadow-md"
+              className="md:hidden p-2 rounded-md hover:bg-gray-200 classic-btn shadow-md"
               aria-label="Toggle sidebar"
             >
               <svg

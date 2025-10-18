@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 
-const NotificationDropdown = ({ notifications, isOpen, onClose, onClearAll }) => {
+const NotificationDropdown = ({ notifications, isOpen, onClose, onClearAll, onMarkAsRead }) => {
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -87,8 +87,23 @@ const NotificationDropdown = ({ notifications, isOpen, onClose, onClearAll }) =>
                       : "bg-blue-50 hover:bg-blue-100"
                   }`}
                 >
-                  <p className="text-sm text-gray-800">{notification.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">{notification.timestamp}</p>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-800">{notification.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">{notification.timestamp}</p>
+                    </div>
+                    {!notification.isRead && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMarkAsRead(notification.id);
+                        }}
+                        className="ml-2 text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+                      >
+                        Mark as read
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

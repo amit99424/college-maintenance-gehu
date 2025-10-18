@@ -73,7 +73,7 @@ export default function ComplaintsList() {
       setFilteredComplaints(complaints.filter((c) => {
         const complaintStatus = c.status.toLowerCase().replace(/\s+/g, '-');
         const filterValue = filter.toLowerCase().replace(/\s+/g, '-');
-        return complaintStatus === filterValue;
+        return complaintStatus === filterValue || c.status === filter;
       }));
     }
   }, [complaints, filter]);

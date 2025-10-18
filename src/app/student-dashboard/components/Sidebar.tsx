@@ -99,11 +99,11 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
         `}
       >
         {/* Header */}
-        <div className="p-4 border-b flex flex-col items-start justify-between space-y-1 bg-blue-400">
-          <h2 className="text-lg font-semibold text-gray-800 truncate max-w-[12rem]">
+        <div className="p-4 border-b flex flex-col items-start justify-between space-y-1" style={{ backgroundColor: 'var(--sidebar-hover)' }}>
+          <h2 className="text-lg font-semibold truncate max-w-[12rem]" style={{ color: 'white' }}>
             {userData.name || "Student"}
           </h2>
-          <p className="text-sm text-gray-600 truncate max-w-[12rem]">
+          <p className="text-sm truncate max-w-[12rem]" style={{ color: 'white' }}>
             {userData.department || "Department"}
           </p>
         </div>
@@ -113,19 +113,21 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
           {menuItems.map((item) => (
             <div
               key={item.id}
-              className={`bg-blue-200 rounded-md shadow p-1 ${
-                activeSection === item.id ? "border-2 border-blue-600" : ""
+              className={`classic-card p-1 ${
+                activeSection === item.id ? "border-2" : ""
               }`}
+              style={activeSection === item.id ? { borderColor: 'var(--sidebar-hover)' } : {}}
             >
               <button
                 onClick={() => handleMenuItemClick(item.id)}
                 className={`w-full flex items-center px-4 py-3 text-left transition-colors rounded-md ${
                   activeSection === item.id
-                    ? "bg-blue-100 text-blue-600"
+                    ? "classic-btn"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
+                style={activeSection === item.id ? {} : { color: 'var(--paragraph-text)' }}
               >
-                <span className="text-xl mr-3">{item.icon}</span>
+                <span className="text-lg mr-3">{item.icon}</span>
                 <span className="font-medium">{item.label}</span>
                 {item.badge && item.badge > 0 && (
                   <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -139,28 +141,29 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
 
         {/* Footer */}
         <div className="absolute bottom-4 left-4 right-4 space-y-3">
-          <div className="bg-blue-200 rounded-md shadow p-1">
+          <div className="classic-card p-1">
             <button
               onClick={() => handleMenuItemClick("change-password")}
-              className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-gray-700 hover:bg-blue-200"
+              className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-gray-700 hover:bg-gray-100"
+              style={{ color: 'var(--paragraph-text)' }}
             >
-              <span className="text-xl mr-3">🔑</span>
+              <span className="text-lg mr-3">🔑</span>
               <span className="font-medium">Change Password</span>
             </button>
           </div>
-          <div className="bg-red-200 rounded-md shadow p-1">
+          <div className="classic-card p-1">
             <button
               onClick={() => {
                 if (setIsOpen) setIsOpen(false);
                 if (onLogout) onLogout();
               }}
-              className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-red-700 hover:bg-red-200"
+              className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-red-700 hover:bg-red-100"
             >
-              <span className="text-xl mr-3">🚪</span>
+              <span className="text-lg mr-3">🚪</span>
               <span className="font-medium">Logout</span>
             </button>
           </div>
-          <div className="text-xs text-gray-500 pt-2 text-center">
+          <div className="text-xs pt-2 text-center" style={{ color: 'var(--paragraph-text)' }}>
             College Maintenance System
           </div>
         </div>

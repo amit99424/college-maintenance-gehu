@@ -251,6 +251,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
       }
 
       // Add complaint to Firestore
+      const submittedBy = user.email && user.email.toLowerCase().includes("staff") ? "staff" : "student";
       const complaintRef = await addDoc(collection(db, "complaints"), {
         title: formData.title,
         building: formData.building,
@@ -261,7 +262,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         preferredTime: formData.preferredTime,
         userId: user.uid,
         userEmail: user.email,
-        submittedBy: user.email && user.email.toLowerCase().includes("staff") ? "staff" : "student",
+        submittedBy,
         status: "pending",
         imageUrl,
         createdAt: serverTimestamp(),
@@ -280,6 +281,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
           category: formData.category,
           createdAt: serverTimestamp(),
           read: false,
+          updatedBy: submittedBy,
         });
       });
 
@@ -294,6 +296,22 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
           category: formData.category,
           createdAt: serverTimestamp(),
           read: false,
+          updatedBy: submittedBy,
+        });
+      });
+
+      // Create notifications for all staff
+      const staffQuery = query(collection(db, "users"), where("role", "==", "staff"));
+      const staffSnapshot = await getDocs(staffQuery);
+      staffSnapshot.forEach(async (doc) => {
+        await addDoc(collection(db, "notifications"), {
+          userId: doc.id,
+          message: `New complaint submitted: "${formData.title}" (${formData.category})`,
+          complaintId: complaintRef.id,
+          category: formData.category,
+          createdAt: serverTimestamp(),
+          read: false,
+          updatedBy: submittedBy,
         });
       });
 
@@ -321,9 +339,9 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
 
   return (
     <div className="max-w-full px-4 sm:px-6 md:max-w-4xl md:px-0 mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 md:p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Submit New Complaint</h2>
-        <p className="text-gray-600 mb-6">
+      <div className="classic-card p-4 sm:p-6 md:p-6">
+        <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--heading-text)' }}>Submit New Complaint</h2>
+        <p className="mb-6" style={{ color: 'var(--paragraph-text)' }}>
           Please provide detailed information about your maintenance request to help us assist you better.
         </p>
         {!showSimpleSuccessModal && submitMessage && (
@@ -501,10 +519,10 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${
+              className={`w-full py-3 px-6 rounded-md font-semibold transition-colors ${
                 isSubmitting
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  : "classic-btn"
               }`}
             >
               {isSubmitting ? "Submitting..." : "Submit Complaint"}

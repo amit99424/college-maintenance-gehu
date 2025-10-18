@@ -24,7 +24,7 @@ export default function ComplaintsList() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filteredComplaints, setFilteredComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "pending" | "in-progress" | "completed" | "Reopened">("all");
+  const [filter, setFilter] = useState<"all" | "pending" | "in progress" | "completed" | "Reopened">("all");
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -73,7 +73,7 @@ export default function ComplaintsList() {
       setFilteredComplaints(complaints.filter((c) => {
         const complaintStatus = c.status.toLowerCase().replace(/\s+/g, '-');
         const filterValue = filter.toLowerCase().replace(/\s+/g, '-');
-        return complaintStatus === filterValue;
+        return complaintStatus === filterValue || c.status === filter;
       }));
     }
   }, [complaints, filter]);
@@ -167,7 +167,7 @@ export default function ComplaintsList() {
 
             {/* Filter Buttons */}
             <div className="flex flex-wrap space-x-2 space-y-2 md:space-y-0">
-              {(["all", "pending", "in-progress", "completed", "Reopened"] as const).map((status) => (
+              {(["all", "pending", "in progress", "completed", "Reopened"] as const).map((status) => (
                 <button
                   key={status}
                   onClick={() => setFilter(status)}
@@ -175,7 +175,7 @@ export default function ComplaintsList() {
                     filter === status
                       ? status === "pending"
                         ? "bg-red-600 text-white"
-                        : status === "in-progress"
+                      : status === "in progress"
                         ? "bg-yellow-600 text-white"
                         : status === "completed"
                         ? "bg-purple-600 text-white"
@@ -188,7 +188,11 @@ export default function ComplaintsList() {
                   {status === "all"
                     ? `All (${complaints.length})`
                     : `${status.charAt(0).toUpperCase() + status.slice(1)} (${
-                        complaints.filter((c) => c.status === status).length
+                        complaints.filter((c) => {
+                          const complaintStatus = c.status.toLowerCase().replace(/\s+/g, '-');
+                          const filterValue = status.toLowerCase().replace(/\s+/g, '-');
+                          return complaintStatus === filterValue || c.status === status;
+                        }).length
                       })`}
                 </button>
               ))}

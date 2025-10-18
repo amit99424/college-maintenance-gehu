@@ -147,11 +147,24 @@ export default function Notifications() {
                     <h3 className="font-semibold text-gray-800">
                       {notification.complaintTitle}
                     </h3>
-                    {!notification.read && (
-                      <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                        New
-                      </span>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {!notification.read && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markAsRead(notification.id);
+                          }}
+                          className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+                        >
+                          Mark as read
+                        </button>
+                      )}
+                      {!notification.read && (
+                        <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                          New
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <p className="text-gray-700 mb-2 line-clamp-2">
                     {notification.message}

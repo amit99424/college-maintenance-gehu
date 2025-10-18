@@ -35,22 +35,23 @@ interface Complaint {
   category: string;
   lastUpdatedBy?: string;
   lastUpdatedByRole?: string;
+  supervisorName?: string;
   preferredTime?: string;
   [key: string]: unknown;
 }
 
-export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
+export default function AllComplaintsTable({ initialStatusFilter }: { initialStatusFilter?: string } = {}) {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(initialStatusFilter || "");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [buildingFilter, setBuildingFilter] = useState("");
   const [submittedByFilter, setSubmittedByFilter] = useState("");
 
   // Modal state
-  const [modalOpen, setModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
 
   const buildQueryConstraints = (): QueryConstraint[] => {
@@ -206,15 +207,17 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
   };
 
   // Modal handlers
-  const openModal = (complaint: Complaint) => {
+  const openViewModal = (complaint: Complaint) => {
     setSelectedComplaint(complaint);
-    setModalOpen(true);
+    setViewModalOpen(true);
   };
 
-  const closeModal = () => {
-    setModalOpen(false);
+  const closeViewModal = () => {
+    setViewModalOpen(false);
     setSelectedComplaint(null);
   };
+
+
 
   // Get color classes for status badges
   const getStatusColor = (status: string) => {
@@ -237,11 +240,7 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
   const formatDate = (timestamp: Timestamp | Date | undefined) => {
     if (!timestamp) return "N/A";
     const date = timestamp instanceof Timestamp ? timestamp.toDate() : timestamp;
-    return (
-      date.toLocaleDateString() +
-      " " +
-      date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    );
+    return date.toLocaleDateString();
   };
 
   if (loading) {
@@ -353,9 +352,6 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
                 Submitted By
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Last Updated By
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Date
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
@@ -366,7 +362,7 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredComplaints.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-8 text-center text-gray-700">
+                <td colSpan={8} className="px-4 py-8 text-center text-gray-700">
                   No complaints found matching your filters.
                 </td>
               </tr>
@@ -397,39 +393,23 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
                   <td className="px-4 py-4 whitespace-nowrap capitalize text-gray-900">
                     {getUserTypeFromEmail(complaint.userEmail)}
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {complaint.lastUpdatedBy || "N/A"}
-                      {complaint.lastUpdatedByRole && (
-                        <div className="text-xs text-gray-500">({complaint.lastUpdatedByRole})</div>
-                      )}
-                    </div>
-                  </td>
+
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{formatDate(complaint.createdAt)}</div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <div className="flex space-x-2 items-center">
-                      {complaint.status.toLowerCase() !== "completed" ? (
-                        <select
-                          value={complaint.status}
-                          onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
-                          className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      ) : (
-                        <button
-                          onClick={() => handleReopen(complaint.id)}
-                          className="text-xs px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600"
-                        >
-                          Reopen
-                        </button>
-                      )}
+                      <select
+                        value={complaint.status}
+                        onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
+                        className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                      </select>
                       <button
-                        onClick={() => openModal(complaint)}
+                        onClick={() => openViewModal(complaint)}
                         className="ml-2 text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                       >
                         View
@@ -474,38 +454,27 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
               <p className="text-xs text-gray-800 mb-1 capitalize">
                 <strong>Submitted By:</strong> {getUserTypeFromEmail(complaint.userEmail)}
               </p>
-              <p className="text-xs text-gray-800 mb-1">
-                <strong>Last Updated By:</strong> {complaint.lastUpdatedBy || "N/A"}
-                {complaint.lastUpdatedByRole && ` (${complaint.lastUpdatedByRole})`}
-              </p>
+
               <p className="text-xs text-gray-800 mb-2">
                 <strong>Date:</strong> {formatDate(complaint.createdAt)}
               </p>
               <div className="flex space-x-2">
-                {complaint.status.toLowerCase() !== "completed" ? (
-                  <select
-                    value={complaint.status}
-                    onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
-                    className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                ) : (
-                  <button
-                    onClick={() => handleReopen(complaint.id)}
-                    className="text-xs px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600"
-                  >
-                    Reopen
-                  </button>
-                )}
+                <select
+                  value={complaint.status}
+                  onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
+                  className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
                 <button
-                  onClick={() => openModal(complaint)}
+                  onClick={() => openViewModal(complaint)}
                   className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   View
                 </button>
+
               </div>
             </div>
           ))
@@ -517,61 +486,80 @@ export default function AllComplaintsTable({ }: AllComplaintsTableProps) {
         Showing {filteredComplaints.length} of {complaints.length} complaints
       </div>
 
-      {/* Modal */}
-      {modalOpen && selectedComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+      {/* View Modal */}
+      {viewModalOpen && selectedComplaint && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent bg-opacity-20 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-8 relative transform transition-all duration-300 ease-in-out scale-100">
             <button
-              onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold"
+              onClick={closeViewModal}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold transition-colors duration-200"
               aria-label="Close modal"
             >
               &times;
             </button>
-            <h2 className="text-xl font-semibold mb-4">Complaint Details</h2>
-            <div className="space-y-2 text-gray-900">
-              <p>
-                <strong>Title:</strong> {selectedComplaint.title}
-              </p>
-              <p>
-                <strong>Description:</strong> {selectedComplaint.description}
-              </p>
-              <p>
-                <strong>Category:</strong> {selectedComplaint.category}
-              </p>
-              <p>
-                <strong>Building:</strong> {selectedComplaint.building}
-              </p>
-              <p>
-                <strong>Room:</strong> {selectedComplaint.room}
-              </p>
-              <p>
-                <strong>Status:</strong>{" "}
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                    selectedComplaint.status
-                  )}`}
-                >
-                  {selectedComplaint.status}
-                </span>
-              </p>
-              <p>
-                <strong>Submitted By:</strong> {getUserTypeFromEmail(selectedComplaint.userEmail)}
-              </p>
-              <p>
-                <strong>Last Updated By:</strong> {selectedComplaint.lastUpdatedBy || "N/A"}
-                {selectedComplaint.lastUpdatedByRole && ` (${selectedComplaint.lastUpdatedByRole})`}
-              </p>
-              <p>
-                <strong>Date:</strong> {formatDate(selectedComplaint.createdAt)}
-              </p>
-              <p>
-                <strong>Time Slot:</strong> {selectedComplaint.preferredTime || "N/A"}
-              </p>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Complaint Details</h2>
+              <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{selectedComplaint.title}</h3>
+                <p className="text-gray-700 leading-relaxed">{selectedComplaint.description}</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Building</span>
+                    <p className="text-gray-900 font-medium">{selectedComplaint.building}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Room</span>
+                    <p className="text-gray-900 font-medium">{selectedComplaint.room}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</span>
+                    <span
+                      className={`inline-block px-3 py-1 text-sm font-medium rounded-full mt-1 ${getStatusColor(
+                        selectedComplaint.status
+                      )}`}
+                    >
+                      {selectedComplaint.status}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Category</span>
+                    <p className="text-gray-900 font-medium">{selectedComplaint.category}</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Submitted By</span>
+                    <p className="text-gray-900 font-medium capitalize">{getUserTypeFromEmail(selectedComplaint.userEmail)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Last Updated By</span>
+                    <p className="text-gray-900 font-medium">
+                      {selectedComplaint.supervisorName || selectedComplaint.lastUpdatedBy
+                        ? `${selectedComplaint.supervisorName || selectedComplaint.lastUpdatedBy} (Supervisor)`
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Date Submitted</span>
+                    <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Time Slot</span>
+                    <p className="text-gray-900 font-medium">{selectedComplaint.preferredTime || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+
     </div>
   );
 }

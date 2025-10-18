@@ -25,6 +25,7 @@ interface ComplaintsTableProps {
     role?: string;
     [key: string]: unknown;
   };
+  initialStatusFilter?: string;
 }
 
 interface Complaint {
@@ -43,7 +44,7 @@ interface Complaint {
   [key: string]: unknown;
 }
 
-export default function ComplaintsTable({ category, userData }: ComplaintsTableProps) {
+export default function ComplaintsTable({ category, userData, initialStatusFilter }: ComplaintsTableProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [allComplaints, setAllComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,17 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
   const [statusFilter, setStatusFilter] = useState("");
   const [buildingFilter, setBuildingFilter] = useState("");
   const [submittedByFilter, setSubmittedByFilter] = useState("");
+
+  // Get initial status filter from URL or props
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    if (status) {
+      setStatusFilter(status);
+    } else if (initialStatusFilter) {
+      setStatusFilter(initialStatusFilter);
+    }
+  }, [initialStatusFilter]);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -111,9 +123,11 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
 
     // Status filter
     if (statusFilter.trim() !== "") {
-      filtered = filtered.filter(
-        (c) => c.status.toLowerCase() === statusFilter.trim().toLowerCase()
-      );
+      filtered = filtered.filter((c) => {
+        const complaintStatus = c.status.toLowerCase().replace(/\s+/g, '-');
+        const filterValue = statusFilter.toLowerCase().replace(/\s+/g, '-');
+        return complaintStatus === filterValue || c.status === statusFilter;
+      });
     }
 
     // Building filter
@@ -163,7 +177,7 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
         const complaintData = complaintDoc.data();
         await addDoc(collection(db, "notifications"), {
           userId: complaintData.userId,
-          message: `Your complaint "${complaintData.title}" is now ${newStatus}`,
+          message: `Your complaint "${complaintData.title}" status has been updated to ${newStatus}`,
           complaintId: complaintId,
           complaintTitle: complaintData.title,
           createdAt: new Date(),
@@ -176,25 +190,6 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update complaint status");
-    }
-  };
-
-  // Handle reopen action for completed complaints
-  const handleReopen = async (complaintId: string) => {
-    try {
-      // Update the complaint in the "complaints" collection
-      await updateDoc(doc(db, "complaints", complaintId), {
-        status: "Reopened",
-        updatedAt: new Date(),
-        lastUpdatedBy: "supervisor",
-        supervisorName: userData?.name || userData?.email || "Supervisor",
-        lastUpdatedByRole: "Supervisor",
-      });
-
-      toast.success("Complaint reopened successfully");
-    } catch (error) {
-      console.error("Error reopening complaint:", error);
-      toast.error("Failed to reopen complaint");
     }
   };
 
@@ -230,11 +225,7 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
   const formatDate = (timestamp: Timestamp | Date | undefined) => {
     if (!timestamp) return "N/A";
     const date = timestamp instanceof Timestamp ? timestamp.toDate() : timestamp;
-    return (
-      date.toLocaleDateString() +
-      " " +
-      date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    );
+    return date.toLocaleDateString();
   };
 
   if (loading) {
@@ -253,8 +244,8 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-gray-900 font-semibold mb-6">Complaints</h3>
+    <div className="bg-white p-4 rounded-lg shadow-md">
+      <h3 className="text-gray-900 font-semibold mb-4">Complaints</h3>
 
       {/* Search input */}
       <div className="mb-6">
@@ -309,32 +300,32 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
       </div>
 
       {/* Table for desktop */}
-      <div className="overflow-x-auto hidden md:block">
-        <table className="min-w-full table-auto">
+      <div className="hidden md:block">
+        <table className="w-full table-fixed">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[12%]">
                 Title
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[12%]">
                 Description
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[18%]">
                 Building
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[9%]">
                 Room
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[10%]">
                 Status
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[10%]">
                 Submitted By
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[10%]">
                 Date
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[16%]">
                 Actions
               </th>
             </tr>
@@ -350,16 +341,16 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
               filteredComplaints.map((complaint) => (
                 <tr key={complaint.id} className="hover:bg-gray-50">
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{complaint.title}</div>
-                  </td>
-                  <td className="px-4 py-4 max-w-xs truncate">
-                    <div className="text-sm text-gray-900">{complaint.description}</div>
+                    <div className="text-sm font-medium text-gray-900 truncate">{complaint.title}</div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{complaint.building}</div>
+                    <div className="text-sm text-gray-900 truncate">{complaint.description}</div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{complaint.room}</div>
+                    <div className="text-sm text-gray-900 truncate">{complaint.building}</div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 truncate">{complaint.room}</div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <span
@@ -378,27 +369,18 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <div className="flex space-x-2 items-center">
-                      {complaint.status.toLowerCase() !== "completed" ? (
-                        <select
-                          value={complaint.status}
-                          onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
-                          className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      ) : (
-                        <button
-                          onClick={() => handleReopen(complaint.id)}
-                          className="text-xs px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600"
-                        >
-                          Reopen
-                        </button>
-                      )}
+                      <select
+                        value={complaint.status}
+                        onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
+                        className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                      </select>
                       <button
                         onClick={() => openModal(complaint)}
-                        className="ml-2 text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                       >
                         View
                       </button>
@@ -443,24 +425,15 @@ export default function ComplaintsTable({ category, userData }: ComplaintsTableP
                 <strong>Date:</strong> {formatDate(complaint.createdAt)}
               </p>
               <div className="flex space-x-2">
-                {complaint.status.toLowerCase() !== "completed" ? (
-                  <select
-                    value={complaint.status}
-                    onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
-                    className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                ) : (
-                  <button
-                    onClick={() => handleReopen(complaint.id)}
-                    className="text-xs px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600"
-                  >
-                    Reopen
-                  </button>
-                )}
+                <select
+                  value={complaint.status}
+                  onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
+                  className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
                 <button
                   onClick={() => openModal(complaint)}
                   className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
