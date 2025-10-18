@@ -207,9 +207,14 @@ export default function AdminDashboard() {
       <main className="flex-1 md:ml-64 p-2 md:p-8 w-full">
         {/* Header */}
         <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between p-2 sm:p-4 rounded w-full" style={{ backgroundColor: 'var(--header-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800 font-poppins">
-            Admin Dashboard
-          </h1>
+          <div className="flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
+            <img
+              src="/university-logo.png"
+              alt="University Logo"
+              className="h-20 object-contain"
+              style={{ backgroundColor: 'transparent', marginLeft: -40 }}
+            />
+          </div>
           <div className="relative flex items-center space-x-3 z-50">
             <NotificationDropdown
               notifications={notifications}
@@ -236,20 +241,7 @@ export default function AdminDashboard() {
               </svg>
             </button>
 
-            {/* Profile Avatar Dropdown */}
-            <div className="relative">
-              <button
-                className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                onClick={() => setActiveSection("profile")}
-              >
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                  {userData?.name ? userData.name.charAt(0).toUpperCase() : "A"}
-                </div>
-                <span className="hidden md:block text-sm font-medium text-gray-700">
-                  {userData?.name || "Admin"}
-                </span>
-              </button>
-            </div>
+
           </div>
         </div>
 

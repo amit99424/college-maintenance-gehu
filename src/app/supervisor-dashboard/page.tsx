@@ -206,9 +206,14 @@ export default function SupervisorDashboard() {
       <main className="flex-1 md:ml-64 p-2 md:p-4 w-full">
         {/* Header */}
         <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between p-2 sm:p-4 rounded w-full" style={{ backgroundColor: 'var(--header-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800 font-poppins truncate overflow-hidden whitespace-nowrap">
-            {userData?.category ? `${userData.category} Supervisor Dashboard` : "Supervisor Dashboard"}
-          </h1>
+          <div className="flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
+            <img
+              src="/university-logo.png"
+              alt="University Logo"
+              className="h-20 object-contain"
+              style={{ backgroundColor: 'transparent', marginLeft: -40 }}
+            />
+          </div>
           <div className="relative flex items-center space-x-3 z-50">
             <NotificationDropdown
               notifications={notifications}

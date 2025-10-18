@@ -23,6 +23,10 @@ interface Complaint {
 export default function DashboardHome({ setActiveSection, setStatusFilter }: DashboardHomeProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newComplaintsToday, setNewComplaintsToday] = useState(0);
+  const [resolvedLast24h, setResolvedLast24h] = useState(0);
+  const [avgResponseTime, setAvgResponseTime] = useState(0);
+  const [systemEfficiency, setSystemEfficiency] = useState(0);
 
   useEffect(() => {
     const q = query(
@@ -36,6 +40,36 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
         ...doc.data()
       })) as Complaint[];
       setComplaints(complaintsData);
+
+      // Calculate stats
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      let newToday = 0;
+      let resolved24h = 0;
+      let totalCompleted = 0;
+      let totalComplaints = complaintsData.length;
+      let responseTimes: number[] = [];
+
+      complaintsData.forEach(complaint => {
+        const createdAt = complaint.createdAt instanceof Timestamp ? complaint.createdAt.toDate() : complaint.createdAt instanceof Date ? complaint.createdAt : new Date(complaint.createdAt as string);
+        const updatedAt = complaint.updatedAt instanceof Timestamp ? complaint.updatedAt.toDate() : complaint.updatedAt ? new Date(complaint.updatedAt as string) : createdAt;
+
+        if (createdAt >= startOfDay) newToday++;
+        if (complaint.status.toLowerCase() === 'completed' && updatedAt >= last24h) resolved24h++;
+        if (complaint.status.toLowerCase() === 'completed') {
+          totalCompleted++;
+          const responseTime = (updatedAt.getTime() - createdAt.getTime()) / (1000 * 60 * 60); // hours
+          responseTimes.push(responseTime);
+        }
+      });
+
+      setNewComplaintsToday(newToday);
+      setResolvedLast24h(resolved24h);
+      setAvgResponseTime(responseTimes.length > 0 ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length : 0);
+      setSystemEfficiency(totalComplaints > 0 ? Math.round((totalCompleted / totalComplaints) * 100) : 0);
+
       setLoading(false);
     });
 
@@ -95,7 +129,7 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
       title: "In Progress",
       count: statusCounts["in-progress"],
       status: "in progress",
-      color: "bg-yellow-200 border-yellow-400 text-yellow-900 hover:bg-yellow-300",
+      color: "bg-yellow-20 border-yellow-400 text-yellow-900 hover:bg-yellow-300",
       icon: "🔄"
     },
     {
@@ -153,10 +187,32 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* {Welcome Section} */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-xl text-white shadow-lg">
-        <h2 className="text-2xl font-bold font-poppins mb-2">Welcome back, Admin!</h2>
-        <p className="text-blue-100">Here&apos;s an overview of all complaints in the system</p>
+      {/* Today’s Overview Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-xl text-white shadow-lg hover:scale-105 transition-transform duration-300">
+        <h2 className="text-2xl font-bold font-poppins mb-2">Today’s Overview</h2>
+        <p className="text-blue-100 mb-6">Here’s a quick insight into today’s system activity</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="text-center">
+            <div className="text-3xl mb-1">📊</div>
+            <p className="text-sm opacity-90">New Complaints Today</p>
+            <p className="text-2xl font-bold">{newComplaintsToday}</p>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl mb-1">⚙️</div>
+            <p className="text-sm opacity-90">Resolved in last 24 hours</p>
+            <p className="text-2xl font-bold">{resolvedLast24h}</p>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl mb-1">⏱️</div>
+            <p className="text-sm opacity-90">Avg Response Time</p>
+            <p className="text-2xl font-bold">{avgResponseTime.toFixed(1)} hrs</p>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl mb-1">💡</div>
+            <p className="text-sm opacity-90">System Efficiency</p>
+            <p className="text-2xl font-bold">{systemEfficiency}%</p>
+          </div>
+        </div>
       </div>
 
       {/* Summary Cards */}
