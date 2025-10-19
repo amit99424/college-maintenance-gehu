@@ -138,7 +138,7 @@ export default function SupervisorDashboard() {
       case "notifications":
         return <Notifications />;
       case "profile":
-        {console.log("SupervisorDashboard userData:", userData);}
+        { console.log("SupervisorDashboard userData:", userData); }
         return userData ? <Profile userData={userData} /> : <div>{t("loading")}</div>;
       case "change-password":
         return <ChangePassword onSuccess={() => setActiveSection("profile")} />;
@@ -175,22 +175,19 @@ export default function SupervisorDashboard() {
 
       {/* Sidebar for mobile (slide-in) */}
       <div
-        className={`fixed inset-0 z-50 flex transition-opacity duration-300 ${
-          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-50 flex transition-opacity duration-300 ${isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
       >
         {/* Overlay */}
         <div
-          className={`fixed inset-0 bg-black/40 transition-opacity duration-300 ${
-            isSidebarOpen ? "opacity-100" : "opacity-0"
-          }`}
+          className={`fixed inset-0 bg-black/40 transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0"
+            }`}
           onClick={() => setIsSidebarOpen(false)}
         />
         {/* Sidebar Panel */}
         <aside
-          className={`relative w-64 shadow-lg h-full z-50 transition-transform duration-300 transform ${
-            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`relative w-64 shadow-lg h-full z-50 transition-transform duration-300 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
           style={{ backgroundColor: 'var(--sidebar-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}
         >
           <Sidebar
@@ -207,16 +204,21 @@ export default function SupervisorDashboard() {
       {/* Main Content */}
       <main className="flex-1 md:ml-64 p-2 md:p-4 w-full">
         {/* Header */}
-        <div className="fixed top-0 z-20 pb-4 border-b flex items-center justify-between p-2 sm:p-4 rounded w-full md:left-64" style={{ backgroundColor: 'var(--header-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
-          <div className="flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
-            <img
-              src="/university-logo.png"
-              alt="University Logo"
-              className="h-20 object-contain"
-              style={{ backgroundColor: 'transparent', marginLeft: -40 }}
+        <div
+          className="fixed top-0 left-0 right-0 z-20 flex items-center justify-between h-21 px-4 md:px-8 border-b bg-white shadow-md md:pl-72"
+        >
+          {/* Logo Section */}
+        <div className="flex items-center space-x-3 -ml-10">
+          <img
+            src="/university-logo.png"
+            alt="University Logo"
+            className="h-15 w-auto object-contain"
             />
           </div>
-          <div className="relative flex items-center space-x-3 z-50">
+
+          {/* Right Section */}
+          <div className="flex items-center space-x-4">
+            {/* Notification Dropdown */}
             <NotificationDropdown
               notifications={notifications}
               isOpen={isNotificationOpen}
@@ -233,12 +235,17 @@ export default function SupervisorDashboard() {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-600"
+                className="h-6 w-6 text-gray-700"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
             </button>
           </div>

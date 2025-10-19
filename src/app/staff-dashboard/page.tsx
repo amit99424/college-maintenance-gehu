@@ -200,17 +200,20 @@ export default function StaffDashboard() {
       {/* Main Content */}
       <main className="flex-1 md:ml-64 p-2 md:p-8 w-full">
         {/* Header */}
-        <div className="fixed top-0 z-20 pb-4 border-b flex items-center justify-between p-2 sm:p-4 rounded w-full md:left-64" style={{ backgroundColor: 'var(--header-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
-          <div className="flex flex-col items-start space-y-2" style={{ marginLeft: 0, paddingLeft: 0 }}>
-            <img
-              src="/university-logo.png"
-              alt="University Logo"
-              className="h-20 object-contain"
-              style={{ backgroundColor: 'transparent', marginLeft: -40 }}
+        <div
+          className="fixed top-0 left-0 right-0 z-20 flex items-center justify-between w-full h-21 px-6 md:pl-72 bg-white shadow-md"
+        >
+          {/* Logo Section */}
+        <div className="flex items-center space-x-3 -ml-10">
+          <img
+            src="/university-logo.png"
+            alt="University Logo"
+            className="h-15 w-auto object-contain"
             />
           </div>
 
-          <div className="relative flex items-center space-x-3 z-50">
+          {/* Right Section */}
+          <div className="flex items-center space-x-4 pr-4">
             {/* Notification Dropdown */}
             <NotificationDropdown
               notifications={notifications}
@@ -220,7 +223,7 @@ export default function StaffDashboard() {
               onMarkAsRead={handleMarkAsRead}
             />
 
-            {/* Hamburger menu button for mobile */}
+            {/* Hamburger Menu (for Mobile) */}
             <button
               aria-label="Toggle sidebar"
               className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
@@ -233,7 +236,12 @@ export default function StaffDashboard() {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
             </button>
           </div>
