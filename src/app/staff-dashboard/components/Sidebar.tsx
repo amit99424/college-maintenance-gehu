@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import EnhancedDropdown from "./EnhancedDropdown";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db, auth } from "@/firebase/config";
+import { useLanguage } from "../../../contexts/LanguageContext";
 
 interface UserData {
   name?: string;
@@ -29,6 +30,7 @@ interface MenuItem {
 
 export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen, onLogout }: SidebarProps) {
   const [unreadCount, setUnreadCount] = useState(0);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -50,22 +52,22 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
   const menuItems: MenuItem[] = [
     {
       id: "submit-complaint",
-      label: "Submit Complaint",
+      label: t("submitComplaint"),
       icon: "📝",
     },
     {
       id: "my-complaints",
-      label: "My Complaints",
+      label: t("myComplaints"),
       icon: "📋",
     },
     {
       id: "reopen-complaints",
-      label: "Reopen Complaints",
+      label: t("reopenComplaints"),
       icon: "🔄",
     },
     {
       id: "profile",
-      label: "Profile",
+      label: t("profile"),
       icon: "👤",
     },
   ];
@@ -101,7 +103,7 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
         {/* Header */}
         <div className="p-4 border-b flex flex-col items-start justify-between space-y-1" style={{ backgroundColor: 'var(--sidebar-hover)' }}>
           <h2 className="text-lg font-semibold truncate max-w-[12rem]" style={{ color: 'white' }}>
-            {userData.name || "Staff"}
+            {userData.name || t("staff")}
           </h2>
         </div>
 
@@ -145,7 +147,7 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
               style={{ color: 'var(--paragraph-text)' }}
             >
               <span className="text-lg mr-3">🔑</span>
-              <span className="font-medium">Change Password</span>
+              <span className="font-medium">{t("changePassword")}</span>
             </button>
           </div>
           <div className="classic-card p-1">
@@ -157,11 +159,11 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
               className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-red-700 hover:bg-red-100"
             >
               <span className="text-lg mr-3">🚪</span>
-              <span className="font-medium">Logout</span>
+              <span className="font-medium">{t("logout")}</span>
             </button>
           </div>
           <div className="text-xs pt-2 text-center" style={{ color: 'var(--paragraph-text)' }}>
-            College Maintenance System
+            {t("collegeMaintenanceSystem")}
           </div>
         </div>
       </div>

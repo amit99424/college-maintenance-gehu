@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, orderBy, query, where, Timestamp, doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebase/config";
+import { useTranslation } from "react-i18next";
 
 type SupervisorUpdatesProps = Record<string, never>;
 
@@ -35,6 +36,7 @@ interface Complaint {
 }
 
 export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
+  const { t } = useTranslation();
   const [updates, setUpdates] = useState<SupervisorUpdate[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -155,13 +157,13 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-gray-900 font-semibold mb-6">Supervisor Updates</h3>
+      <h3 className="text-gray-900 font-semibold mb-6">{t("supervisorUpdates")}</h3>
 
       {updates.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-4xl mb-4">🔄</div>
-          <p className="text-gray-500 font-medium">No supervisor updates found.</p>
-          <p className="text-sm text-gray-400 mt-1">Updates will appear here when supervisors modify complaints</p>
+          <p className="text-gray-500 font-medium">{t("noSupervisorUpdates")}</p>
+          <p className="text-sm text-gray-400 mt-1">{t("supervisorUpdatesWillAppear")}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -173,7 +175,7 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900 mb-1">{update.title}</h4>
-                  <p className="text-sm text-gray-600 mb-2">Complaint ID: {update.complaintId}</p>
+                  <p className="text-sm text-gray-600 mb-2">{t("complaintId")}: {update.complaintId}</p>
                 </div>
                 <div className="text-right">
                   <span
@@ -190,7 +192,7 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="text-gray-700">
-                  <strong>Updated by:</strong> {update.supervisorName}
+                  <strong>{t("updatedBy")}:</strong> {update.supervisorName}
                 </div>
                 <button
                   onClick={() => openModal(update.complaintId)}
@@ -216,7 +218,7 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
               &times;
             </button>
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Complaint Details</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t("complaintDetails")}</h2>
               <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
@@ -227,15 +229,15 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Building</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("building")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.building}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Room</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("room")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.room}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("status")}</span>
                     <span
                       className={`inline-block px-3 py-1 text-sm font-medium rounded-full mt-1 ${getStatusColor(
                         selectedComplaint.status
@@ -245,21 +247,21 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
                     </span>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Category</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("category")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.category}</p>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Submitted By</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("submittedBy")}</span>
                     <p className="text-gray-900 font-medium capitalize">{getUserTypeFromEmail(selectedComplaint.userEmail)}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Date Submitted</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("dateSubmitted")}</span>
                     <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Time Slot</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("timeSlot")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.preferredTime || "N/A"}</p>
                   </div>
                 </div>
@@ -270,7 +272,7 @@ export default function SupervisorUpdates({}: SupervisorUpdatesProps) {
                 onClick={closeModal}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
               >
-                Close
+                {t("close")}
               </button>
             </div>
           </div>

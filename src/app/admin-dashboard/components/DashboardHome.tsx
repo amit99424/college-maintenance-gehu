@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { collection, query, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import { db } from "@/firebase/config";
+import { useTranslation } from "react-i18next";
 
 interface DashboardHomeProps {
   setActiveSection: (section: string) => void;
@@ -21,6 +22,7 @@ interface Complaint {
 }
 
 export default function DashboardHome({ setActiveSection, setStatusFilter }: DashboardHomeProps) {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [newComplaintsToday, setNewComplaintsToday] = useState(0);
@@ -112,28 +114,28 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
 
   const summaryCards = [
     {
-      title: "Total Complaints",
+      title: t("Total Complaints"),
       count: statusCounts.total,
       status: "total",
       color: "bg-purple-200 border-purple-400 text-purple-900 hover:bg-purple-300",
       icon: "📊"
     },
     {
-      title: "Pending",
+      title: t("pending"),
       count: statusCounts.pending,
       status: "pending",
       color: "bg-red-200 border-red-400 text-red-900 hover:bg-red-300",
       icon: "⏳"
     },
     {
-      title: "In Progress",
+      title: t("inProgress"),
       count: statusCounts["in-progress"],
       status: "in progress",
       color: "bg-yellow-20 border-yellow-400 text-yellow-900 hover:bg-yellow-300",
       icon: "🔄"
     },
     {
-      title: "Completed",
+      title: t("resolved"),
       count: statusCounts.completed,
       status: "completed",
       color: "bg-green-200 border-green-400 text-green-900 hover:bg-green-300",
@@ -161,12 +163,12 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
         {/* Loading Skeleton for Recent Complaints */}
         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-300">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold font-poppins text-gray-900">Recent Complaints</h3>
+            <h3 className="text-xl font-bold font-poppins text-gray-900">{t("Recent Complaints")}</h3>
             <button
               className="text-blue-600 hover:underline"
               onClick={() => setActiveSection("all-complaints")}
             >
-              View All →
+              {t("View All")} →
             </button>
           </div>
           <div className="space-y-4">
@@ -189,27 +191,27 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
     <div className="space-y-8 animate-fade-in">
       {/* Today’s Overview Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-xl text-white shadow-lg hover:scale-105 transition-transform duration-300">
-        <h2 className="text-2xl font-bold font-poppins mb-2">Today’s Overview</h2>
-        <p className="text-blue-100 mb-6">Here’s a quick insight into today’s system activity</p>
+        <h2 className="text-2xl font-bold font-poppins mb-2">{t("Todays Overview")}</h2>
+        <p className="text-blue-100 mb-6">{t("Todays Overview Desc")}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="text-center">
             <div className="text-3xl mb-1">📊</div>
-            <p className="text-sm opacity-90">New Complaints Today</p>
+            <p className="text-sm opacity-90">{t("New Complaints")}</p>
             <p className="text-2xl font-bold">{newComplaintsToday}</p>
           </div>
           <div className="text-center">
             <div className="text-3xl mb-1">⚙️</div>
-            <p className="text-sm opacity-90">Resolved in last 24 hours</p>
+            <p className="text-sm opacity-90">{t("Resolved Last 24h")}</p>
             <p className="text-2xl font-bold">{resolvedLast24h}</p>
           </div>
           <div className="text-center">
             <div className="text-3xl mb-1">⏱️</div>
-            <p className="text-sm opacity-90">Avg Response Time</p>
-            <p className="text-2xl font-bold">{avgResponseTime.toFixed(1)} hrs</p>
+            <p className="text-sm opacity-90">{t("Avg Response Time")}</p>
+            <p className="text-2xl font-bold">{avgResponseTime.toFixed(1)} {t("hrs")}</p>
           </div>
           <div className="text-center">
             <div className="text-3xl mb-1">💡</div>
-            <p className="text-sm opacity-90">System Efficiency</p>
+            <p className="text-sm opacity-90">{t("System Efficiency")}</p>
             <p className="text-2xl font-bold">{systemEfficiency}%</p>
           </div>
         </div>
@@ -231,12 +233,12 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
           >
             <div className="flex items-center justify-between mb-4">
               <span className="text-2xl">{card.icon}</span>
-              <span className="text-sm font-medium opacity-75">View Details</span>
+              <span className="text-sm font-medium opacity-75">{t("View Details")}</span>
             </div>
             <h3 className="text-lg font-semibold font-poppins mb-2">{card.title}</h3>
             <p className="text-3xl font-bold font-poppins">{card.count}</p>
             <div className="mt-2 flex items-center text-sm">
-              <span className="opacity-75">Complaints</span>
+              <span className="opacity-75">{t("Complaints")}</span>
               <svg className="w-4 h-4 ml-1 opacity-50" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
               </svg>
@@ -248,19 +250,19 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
       {/* Recent Complaints Preview */}
       <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-300">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold font-poppins text-gray-900">Recent Complaints</h3>
+          <h3 className="text-xl font-bold font-poppins text-gray-900">{t("Recent Complaints")}</h3>
           <button
             onClick={() => setActiveSection("all-complaints")}
             className="text-blue-600 hover:underline"
           >
-            View All →
+            {t("View All")} →
           </button>
         </div>
         {complaints.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-4xl mb-4">📋</div>
-            <p className="text-gray-500 font-medium">No complaints found.</p>
-            <p className="text-sm text-gray-400 mt-1">New complaints will appear here</p>
+            <p className="text-gray-500 font-medium">{t("noComplaintsFound")}</p>
+            <p className="text-sm text-gray-400 mt-1">{t("newComplaintsWillAppear")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -283,7 +285,7 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
                       } else if (createdAt instanceof Date) {
                         return createdAt.toLocaleDateString();
                       } else {
-                        return 'Recent';
+                        return t("recent");
                       }
                     })()}
                   </p>
@@ -299,7 +301,7 @@ export default function DashboardHome({ setActiveSection, setStatusFilter }: Das
                   onClick={() => setActiveSection("all-complaints")}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium"
                 >
-                  View All Complaints
+                  {t("View All Complaints")}
                   <svg className="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>

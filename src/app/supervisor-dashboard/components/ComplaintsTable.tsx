@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface ComplaintsTableProps {
   category?: string;
@@ -45,6 +46,7 @@ interface Complaint {
 }
 
 export default function ComplaintsTable({ category, userData, initialStatusFilter }: ComplaintsTableProps) {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [allComplaints, setAllComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,10 +113,10 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
 
   // Helper to determine user type from email domain
   const getUserTypeFromEmail = (email: string): string => {
-    if (!email) return "Unknown";
-    if (email.toLowerCase().endsWith("@gmail.com")) return "Student";
-    if (email.toLowerCase().endsWith("@staff.com")) return "Staff";
-    return "Unknown";
+    if (!email) return t("unknown");
+    if (email.toLowerCase().endsWith("@gmail.com")) return t("student");
+    if (email.toLowerCase().endsWith("@staff.com")) return t("staff");
+    return t("unknown");
   };
 
   // Client-side filtering combining all filters
@@ -157,7 +159,7 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
     }
 
     return filtered;
-  }, [complaints, searchTerm, statusFilter, buildingFilter, submittedByFilter]);
+  }, [complaints, searchTerm, statusFilter, buildingFilter, submittedByFilter, t]);
 
   // Handle status change update in Firestore
   const handleStatusChange = async (complaintId: string, newStatus: string) => {
@@ -167,8 +169,8 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
         status: newStatus,
         updatedAt: new Date(),
         lastUpdatedBy: "supervisor",
-        supervisorName: userData?.name || userData?.email || "Supervisor",
-        lastUpdatedByRole: "Supervisor",
+        supervisorName: userData?.name || userData?.email || t("supervisor"),
+        lastUpdatedByRole: t("supervisor"),
       });
 
       // Create notification for the student
@@ -177,19 +179,19 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
         const complaintData = complaintDoc.data();
         await addDoc(collection(db, "notifications"), {
           userId: complaintData.userId,
-          message: `Your complaint "${complaintData.title}" status has been updated to ${newStatus}`,
+          message: `${t("complaintStatusUpdated")} "${complaintData.title}" ${t("to")} ${newStatus}`,
           complaintId: complaintId,
           complaintTitle: complaintData.title,
           createdAt: new Date(),
           read: false,
-          updatedBy: userData?.name || userData?.email || "Supervisor",
+          updatedBy: userData?.name || userData?.email || t("supervisor"),
         });
       }
 
-      toast.success(`Complaint status updated to ${newStatus}`);
+      toast.success(`${t("complaintStatusUpdatedTo")} ${newStatus}`);
     } catch (error) {
       console.error("Error updating status:", error);
-      toast.error("Failed to update complaint status");
+      toast.error(t("failedToUpdateStatus"));
     }
   };
 
@@ -245,13 +247,13 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md">
-      <h3 className="text-gray-900 font-semibold mb-4">Complaints</h3>
+      <h3 className="text-gray-900 font-semibold mb-4">{t("complaints")}</h3>
 
       {/* Search input */}
       <div className="mb-6">
         <input
           type="text"
-          placeholder="Search by title or description"
+          placeholder={t("Search By Title Or Description")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
@@ -266,11 +268,11 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
           onChange={(e) => setStatusFilter(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         >
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="in-progress">In Progress</option>
-          <option value="completed">Completed</option>
-          <option value="reopened">Reopened</option>
+          <option value="">{t("All Statuses")}</option>
+          <option value="pending">{t("pending")}</option>
+          <option value="in-progress">{t("inProgress")}</option>
+          <option value="completed">{t("resolved")}</option>
+          <option value="reopened">{t("reopened")}</option>
         </select>
 
         {/* Building Filter */}
@@ -279,7 +281,7 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
           onChange={(e) => setBuildingFilter(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         >
-          <option value="">All Buildings</option>
+          <option value="">{t("All Buildings")}</option>
           {uniqueBuildings.map((building) => (
             <option key={building} value={building}>
               {building}
@@ -293,9 +295,9 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
           onChange={(e) => setSubmittedByFilter(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         >
-          <option value="">All Submitted By</option>
-          <option value="student">Student</option>
-          <option value="staff">Staff</option>
+          <option value="">{t("All SubmittedBy")}</option>
+          <option value="student">{t("student")}</option>
+          <option value="staff">{t("staff")}</option>
         </select>
       </div>
 
@@ -305,28 +307,28 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[12%]">
-                Title
+                {t("title")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[12%]">
-                Description
+                {t("description")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[18%]">
-                Building
+                {t("building")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[9%]">
-                Room
+                {t("room")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[10%]">
-                Status
+                {t("status")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[10%]">
-                Submitted By
+                {t("submittedBy")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[10%]">
-                Date
+                {t("date")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider w-[16%]">
-                Actions
+                {t("actions")}
               </th>
             </tr>
           </thead>
@@ -334,7 +336,7 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
             {filteredComplaints.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-gray-700">
-                  No complaints found matching your filters.
+                  {t("noComplaintsFound")}
                 </td>
               </tr>
             ) : (
@@ -374,15 +376,15 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
                         onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
                         className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
-                        <option value="pending">Pending</option>
-                        <option value="in progress">In Progress</option>
-                        <option value="completed">Completed</option>
+                        <option value="pending">{t("pending")}</option>
+                        <option value="in progress">{t("inProgress")}</option>
+                        <option value="completed">{t("resolved")}</option>
                       </select>
                       <button
                         onClick={() => openModal(complaint)}
                         className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                       >
-                        View
+                        {t("view")}
                       </button>
                     </div>
                   </td>
@@ -396,7 +398,7 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
       {/* Mobile card layout */}
       <div className="md:hidden space-y-4">
         {filteredComplaints.length === 0 ? (
-          <div className="text-center text-gray-700">No complaints found matching your filters.</div>
+          <div className="text-center text-gray-700">{t("noComplaintsFound")}</div>
         ) : (
           filteredComplaints.map((complaint) => (
             <div
@@ -415,14 +417,14 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
               </div>
               <p className="text-sm text-gray-900 mb-1 truncate">{complaint.description}</p>
               <p className="text-xs text-gray-800 mb-1">
-                <strong>Building:</strong> {complaint.building} &nbsp; <strong>Room:</strong>{" "}
+                <strong>{t("building")}:</strong> {complaint.building} &nbsp; <strong>{t("room")}:</strong>{" "}
                 {complaint.room}
               </p>
               <p className="text-xs text-gray-800 mb-1 capitalize">
-                <strong>Submitted By:</strong> {getUserTypeFromEmail(complaint.userEmail)}
+                <strong>{t("submittedBy")}:</strong> {getUserTypeFromEmail(complaint.userEmail)}
               </p>
               <p className="text-xs text-gray-800 mb-2">
-                <strong>Date:</strong> {formatDate(complaint.createdAt)}
+                <strong>{t("date")}:</strong> {formatDate(complaint.createdAt)}
               </p>
               <div className="flex space-x-2">
                 <select
@@ -430,15 +432,15 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
                   onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
                   className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="in progress">In Progress</option>
-                  <option value="completed">Completed</option>
+                  <option value="pending">{t("pending")}</option>
+                  <option value="in progress">{t("inProgress")}</option>
+                  <option value="completed">{t("resolved")}</option>
                 </select>
                 <button
                   onClick={() => openModal(complaint)}
                   className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                  View
+                  {t("view")}
                 </button>
               </div>
             </div>
@@ -448,7 +450,7 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
 
       {/* Results count */}
       <div className="mt-4 text-sm text-gray-800">
-        Showing {filteredComplaints.length} of {complaints.length} complaints
+        {t("showing")} {filteredComplaints.length} {t("of")} {complaints.length} {t("complaints")}
       </div>
 
       {/* Modal */}
@@ -463,7 +465,7 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
               &times;
             </button>
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Complaint Details</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t("complaintDetails")}</h2>
               <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
@@ -474,15 +476,15 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Building</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("building")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.building}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Room</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("room")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.room}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("status")}</span>
                     <span
                       className={`inline-block px-3 py-1 text-sm font-medium rounded-full mt-1 ${getStatusColor(
                         selectedComplaint.status
@@ -494,15 +496,15 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Submitted By</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("submittedBy")}</span>
                     <p className="text-gray-900 font-medium capitalize">{getUserTypeFromEmail(selectedComplaint.userEmail)}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Date Submitted</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("dateSubmitted")}</span>
                     <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Time Slot</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("timeSlot")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.preferredTime || "N/A"}</p>
                   </div>
                 </div>
@@ -513,7 +515,7 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
                 onClick={closeModal}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
               >
-                Close
+                {t("close")}
               </button>
             </div>
           </div>

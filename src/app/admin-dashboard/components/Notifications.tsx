@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { collection, query, where, orderBy, onSnapshot, DocumentData, Timestamp, updateDoc, doc } from "firebase/firestore";
 import { db, auth } from "@/firebase/config";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 
 interface Notification {
   id: string;
@@ -17,6 +18,7 @@ interface Notification {
 }
 
 export default function Notifications() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);

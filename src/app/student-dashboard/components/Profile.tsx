@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { doc, updateDoc } from "firebase/firestore";
 import { storage, db, auth } from "@/firebase/config";
+import { useTranslation } from "react-i18next";
 
 // Define proper type instead of `any`
 interface UserData {
@@ -22,6 +23,7 @@ interface ProfileProps {
 }
 
 export default function Profile({ userData }: ProfileProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     name: userData?.name || "",
@@ -57,11 +59,11 @@ export default function Profile({ userData }: ProfileProps) {
       const imageUrl = await getDownloadURL(imageRef);
 
       setProfileImage(imageUrl);
-      setMessage("Profile image updated successfully!");
+      setMessage(t("profileImageUpdated"));
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       console.error("Error uploading image:", error);
-      setMessage("Error uploading image. Please try again.");
+      setMessage(t("profileImageError"));
     } finally {
       setIsUploading(false);
     }
@@ -82,11 +84,11 @@ export default function Profile({ userData }: ProfileProps) {
       localStorage.setItem("userData", JSON.stringify(updatedUserData));
 
       setIsEditing(false);
-      setMessage("Profile updated successfully!");
+      setMessage(t("profileUpdated"));
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       console.error("Error updating profile:", error);
-      setMessage("Error updating profile. Please try again.");
+      setMessage(t("profileUpdateError"));
     } finally {
       setIsSaving(false);
     }
@@ -104,7 +106,7 @@ export default function Profile({ userData }: ProfileProps) {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">Profile Information</h2>
+        <h2 className="text-xl font-semibold text-gray-800 mb-6">{t("personalInformation")}</h2>
 
         {message && (
           <div className={`mb-4 p-3 rounded-lg ${message.includes("successfully") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
@@ -133,7 +135,7 @@ export default function Profile({ userData }: ProfileProps) {
 
             <div className="space-y-2">
               <button onClick={() => fileInputRef.current?.click()} className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
-                Choose Image
+                {t("chooseImage")}
               </button>
               {selectedFile && (
                 <button
@@ -141,7 +143,7 @@ export default function Profile({ userData }: ProfileProps) {
                   disabled={isUploading}
                   className={`w-full px-4 py-2 rounded-lg text-white font-medium transition-colors ${isUploading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
                 >
-                  {isUploading ? "Uploading..." : "Upload Image"}
+                  {isUploading ? t("uploading") : t("uploadImage")}
                 </button>
               )}
             </div>
@@ -150,9 +152,9 @@ export default function Profile({ userData }: ProfileProps) {
           {/* Profile Information Section */}
           <div className="md:w-2/3 space-y-4">
             {[
-              { label: "Full Name", name: "name", value: profileData.name },
-              { label: "Department", name: "department", value: profileData.department },
-              { label: "Date of Birth", name: "dob", value: profileData.dob },
+              { label: t("name"), name: "name", value: profileData.name },
+              { label: t("department"), name: "department", value: profileData.department },
+              { label: t("dob"), name: "dob", value: profileData.dob },
             ].map(field => (
               <div key={field.name}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{field.label}</label>
@@ -165,19 +167,19 @@ export default function Profile({ userData }: ProfileProps) {
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 ) : (
-                  <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{field.value || "Not provided"}</p>
+                  <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{field.value || t("notProvided")}</p>
                 )}
               </div>
             ))}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-              <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{userData?.email || "Not provided"}</p>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t("email")}</label>
+              <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{userData?.email || t("notProvided")}</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-              <p className="p-3 bg-gray-50 rounded-lg text-gray-800 capitalize">{userData?.role || "Not provided"}</p>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t("role")}</label>
+              <p className="p-3 bg-gray-50 rounded-lg text-gray-800 capitalize">{userData?.role || t("notProvided")}</p>
             </div>
 
             {/* Action Buttons */}
@@ -189,15 +191,15 @@ export default function Profile({ userData }: ProfileProps) {
                     disabled={isSaving}
                     className={`px-6 py-2 rounded-lg text-white font-medium transition-colors ${isSaving ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
                   >
-                    {isSaving ? "Saving..." : "Save Changes"}
+                    {isSaving ? t("saving") : t("saveChanges")}
                   </button>
                   <button onClick={handleCancel} className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
-                    Cancel
+                    {t("cancel")}
                   </button>
                 </>
               ) : (
                 <button onClick={() => setIsEditing(true)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  Edit Profile
+                  {t("updateProfile")}
                 </button>
               )}
             </div>

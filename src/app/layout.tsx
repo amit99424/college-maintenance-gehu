@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
-import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "next-themes";
+import { LanguageProvider } from "../contexts/LanguageContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,15 +38,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-          storageKey="theme"
-        >
-          {children}
-          <Toaster position="top-right" richColors />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <LanguageProvider>
+            {children}
+            <Toaster position="top-right" richColors />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

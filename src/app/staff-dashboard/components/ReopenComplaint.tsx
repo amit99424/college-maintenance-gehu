@@ -15,6 +15,7 @@ import {
 import { db, auth } from "@/firebase/config";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 
 interface Complaint {
   id: string;
@@ -33,6 +34,7 @@ interface Complaint {
 }
 
 export default function ReopenComplaint() {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
@@ -82,14 +84,14 @@ export default function ReopenComplaint() {
         updatedAt: new Date(),
       });
 
-      setMessage("Complaint reopened successfully!");
+      setMessage(t("complaintReopened"));
       setSelectedComplaint(null);
       setReopenReason("");
 
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       console.error("Error reopening complaint:", error);
-      setMessage("Error reopening complaint. Please try again.");
+      setMessage(t("reopenError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -112,7 +114,7 @@ export default function ReopenComplaint() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this complaint?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     setDeletingId(id);
     try {
       await deleteDoc(doc(db, "complaints", id));
@@ -120,7 +122,7 @@ export default function ReopenComplaint() {
     } catch (error) {
       console.error("Failed to delete complaint:", error);
       setDeletingId(null);
-      alert("Failed to delete complaint. Please try again.");
+      alert(t("deleteError"));
     }
   };
 
@@ -128,7 +130,7 @@ export default function ReopenComplaint() {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="text-center py-8">Loading resolved complaints...</div>
+          <div className="text-center py-8">{t("loadingResolvedComplaints")}</div>
         </div>
       </div>
     );
@@ -138,7 +140,7 @@ export default function ReopenComplaint() {
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">
-          Reopen Complaints
+          {t("reopenComplaints")}
         </h2>
 
         {message && (
@@ -155,7 +157,7 @@ export default function ReopenComplaint() {
 
         {complaints.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-500">No resolved complaints available to reopen.</p>
+            <p className="text-gray-500">{t("noResolvedComplaints")}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -168,18 +170,18 @@ export default function ReopenComplaint() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 mb-1">{complaint.title}</h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      {complaint.building} - Room {complaint.room} • {complaint.category}
+                      {complaint.building} - {t("room")} {complaint.room} • {complaint.category}
                     </p>
                   </div>
                   <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                    Resolved
+                    {t("resolved")}
                   </span>
                 </div>
 
                 <p className="text-gray-700 mb-3 line-clamp-2">{complaint.description}</p>
 
                 <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
-                  <span>Resolved: {formatDate(complaint.createdAt)}</span>
+                  <span>{t("resolved")}: {formatDate(complaint.createdAt)}</span>
                   <span className="font-medium">ID: {complaint.id.slice(0, 8)}...</span>
                 </div>
 
@@ -188,14 +190,14 @@ export default function ReopenComplaint() {
                     onClick={() => openDialog(complaint)}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                   >
-                    View Details
+                    {t("viewDetails")}
                   </button>
                   <button
                     onClick={() => handleDelete(complaint.id)}
                     disabled={deletingId === complaint.id}
                     className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Delete
+                    {t("delete")}
                   </button>
                 </div>
               </div>
@@ -208,7 +210,7 @@ export default function ReopenComplaint() {
           <div className="fixed inset-0 bg-white/5 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg border border-blue-100 transform transition-all duration-300 scale-100">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-blue-900">Reopen Complaint</h3>
+                <h3 className="text-2xl font-bold text-blue-900">{t("reopenComplaints")}</h3>
                 <button
                   onClick={() => {
                     setSelectedComplaint(null);
@@ -228,19 +230,19 @@ export default function ReopenComplaint() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  <span>{selectedComplaint.building} - Room {selectedComplaint.room}</span>
+                  <span>{selectedComplaint.building} - {t("room")} {selectedComplaint.room}</span>
                 </div>
               </div>
 
               <form onSubmit={handleReopen}>
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Reason for Reopening *
+                    {t("reasonForReopening")} *
                   </label>
                   <textarea
                     value={reopenReason}
                     onChange={(e) => setReopenReason(e.target.value)}
-                    placeholder="Please explain why you need to reopen this complaint..."
+                    placeholder={t("reopenPlaceholder")}
                     rows={4}
                     required
                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none bg-white text-gray-900 placeholder-gray-500 focus:placeholder-gray-400"
@@ -256,7 +258,7 @@ export default function ReopenComplaint() {
                     }}
                     className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium shadow-sm"
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="submit"
@@ -273,10 +275,10 @@ export default function ReopenComplaint() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span>Reopening...</span>
+                        <span>{t("reopening")}</span>
                       </div>
                     ) : (
-                      "Reopen Complaint"
+                      t("reopenComplaint")
                     )}
                   </button>
                 </div>
@@ -290,7 +292,7 @@ export default function ReopenComplaint() {
           <DialogContent className="max-w-4xl w-full p-8">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">
-                Complaint Details
+                {t("complaintDetails")}
               </DialogTitle>
               <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
             </DialogHeader>
@@ -303,15 +305,15 @@ export default function ReopenComplaint() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-3">
                     <div>
-                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Building</span>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("building")}</span>
                       <p className="text-gray-900 font-medium">{selectedComplaint.building}</p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Room</span>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("room")}</span>
                       <p className="text-gray-900 font-medium">{selectedComplaint.room}</p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</span>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("status")}</span>
                       <span className="inline-block px-3 py-1 text-sm font-medium rounded-full mt-1 bg-green-100 text-green-800">
                         {selectedComplaint.status}
                       </span>
@@ -319,18 +321,18 @@ export default function ReopenComplaint() {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Category</span>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("category")}</span>
                       <p className="text-gray-900 font-medium">{selectedComplaint.category}</p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Date Submitted</span>
+                      <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("dateSubmitted")}</span>
                       <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
                     </div>
                   </div>
                 </div>
                 {selectedComplaint.imageUrl && (
                   <div className="mt-4">
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Image</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("complaintImage")}</span>
                     <div className="mt-2">
                       <Image
                         src={selectedComplaint.imageUrl}
@@ -349,7 +351,7 @@ export default function ReopenComplaint() {
                 onClick={closeDialog}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
               >
-                Close
+                {t("close")}
               </button>
             </DialogFooter>
           </DialogContent>

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 const NotificationDropdown = ({ notifications, isOpen, onClose, onClearAll, onMarkAsRead }) => {
+  const { t } = useTranslation();
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -32,7 +34,7 @@ const NotificationDropdown = ({ notifications, isOpen, onClose, onClearAll, onMa
       <button
         onClick={() => onClose()} // Toggle handled by parent
         className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
-        aria-label="Notifications"
+        aria-label={t("notifications")}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -60,13 +62,13 @@ const NotificationDropdown = ({ notifications, isOpen, onClose, onClearAll, onMa
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg p-4 z-50 transition-all duration-200">
           {/* Header */}
           <div className="flex items-center justify-between mb-2 border-b border-gray-200 pb-2">
-            <h2 className="text-lg font-bold text-gray-800">Notifications</h2>
+            <h2 className="text-lg font-bold text-gray-800">{t("notifications")}</h2>
             {notifications.length > 0 && (
               <button
                 onClick={onClearAll}
                 className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
               >
-                Clear All
+                {t("clearAll")}
               </button>
             )}
           </div>
@@ -74,7 +76,7 @@ const NotificationDropdown = ({ notifications, isOpen, onClose, onClearAll, onMa
           {/* Content */}
           {notifications.length === 0 ? (
             <div className="text-center py-4 text-gray-500">
-              No notifications
+              {t("noNotifications")}
             </div>
           ) : (
             <div className="max-h-60 overflow-y-auto space-y-2">
@@ -100,7 +102,7 @@ const NotificationDropdown = ({ notifications, isOpen, onClose, onClearAll, onMa
                         }}
                         className="ml-2 text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
                       >
-                        Mark as read
+                        {t("markAsRead")}
                       </button>
                     )}
                   </div>

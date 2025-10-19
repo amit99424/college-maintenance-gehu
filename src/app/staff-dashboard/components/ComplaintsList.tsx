@@ -5,6 +5,7 @@ import { collection, query, where, orderBy, onSnapshot, DocumentData, Timestamp,
 import { db, auth } from "@/firebase/config";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 
 interface Complaint {
   id: string;
@@ -21,6 +22,7 @@ interface Complaint {
 }
 
 export default function ComplaintsList() {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filteredComplaints, setFilteredComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,7 +115,7 @@ export default function ComplaintsList() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this complaint?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     setDeletingId(id);
     try {
       await deleteDoc(doc(db, "complaints", id));
@@ -121,7 +123,7 @@ export default function ComplaintsList() {
     } catch (error) {
       console.error("Failed to delete complaint:", error);
       setDeletingId(null);
-      alert("Failed to delete complaint. Please try again.");
+      alert(t("deleteError"));
     }
   };
 
@@ -144,7 +146,7 @@ export default function ComplaintsList() {
       closeReopenDialog();
     } catch (error) {
       console.error("Failed to reopen complaint:", error);
-      alert("Failed to reopen complaint. Please try again.");
+      alert(t("reopenError"));
     }
   };
 
@@ -152,7 +154,7 @@ export default function ComplaintsList() {
     return (
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="text-center py-8">Loading complaints...</div>
+          <div className="text-center py-8">{t("loading")}</div>
         </div>
       </div>
     );
@@ -163,7 +165,7 @@ export default function ComplaintsList() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 md:p-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
-            <h2 className="text-xl font-semibold text-gray-800">My Complaints</h2>
+            <h2 className="text-xl font-semibold text-gray-800">{t("myComplaints")}</h2>
 
             {/* Filter Buttons */}
             <div className="flex flex-wrap space-x-2 space-y-2 md:space-y-0">
@@ -186,7 +188,7 @@ export default function ComplaintsList() {
                   }`}
                 >
                   {status === "all"
-                    ? `All (${complaints.length})`
+                    ? `${t("all")} (${complaints.length})`
                     : `${status.charAt(0).toUpperCase() + status.slice(1)} (${
                         complaints.filter((c) => {
                           const complaintStatus = c.status.toLowerCase().replace(/\s+/g, '-');
@@ -203,8 +205,8 @@ export default function ComplaintsList() {
             <div className="text-center py-8">
               <p className="text-gray-500">
                 {filter === "all"
-                  ? "No complaints found. Submit your first complaint!"
-                  : `No ${filter} complaints found.`}
+                  ? t("noComplaints")
+                  : t("noFilteredComplaints", { filter })}
               </p>
             </div>
           ) : (
@@ -220,7 +222,7 @@ export default function ComplaintsList() {
                         {complaint.title}
                       </h3>
                       <p className="text-sm text-gray-600 mb-2">
-                        {complaint.building} - Room {complaint.room} • {complaint.category}
+                        {complaint.building} - {t("room")} {complaint.room} • {complaint.category}
                       </p>
                     </div>
                     <span
@@ -228,8 +230,7 @@ export default function ComplaintsList() {
                         complaint.status
                       )}`}
                     >
-                      {complaint.status.charAt(0).toUpperCase() +
-                        complaint.status.slice(1)}
+                      {t(complaint.status.toLowerCase())}
                     </span>
                   </div>
 
@@ -241,7 +242,7 @@ export default function ComplaintsList() {
                     <div className="mb-3">
                       <Image
                         src={complaint.imageUrl}
-                        alt="Complaint"
+                        alt={t("complaintImage")}
                         width={128}
                         height={128}
                         className="w-32 h-32 object-cover rounded-lg"
@@ -250,7 +251,7 @@ export default function ComplaintsList() {
                   )}
 
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-sm text-gray-500 space-y-2 md:space-y-0 md:space-x-4">
-                    <span>Created: {formatDate(complaint.createdAt)}</span>
+                    <span>{t("created")}: {formatDate(complaint.createdAt)}</span>
                     <span className="font-medium">ID: {complaint.id.slice(0, 8)}...</span>
                   </div>
 
@@ -259,7 +260,7 @@ export default function ComplaintsList() {
                       onClick={() => openDialog(complaint)}
                       className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                     >
-                      View Details
+                      {t("viewDetails")}
                     </button>
                     {complaint.status.toLowerCase() === "completed" && (
                       <button
@@ -280,7 +281,7 @@ export default function ComplaintsList() {
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                           />
                         </svg>
-                        <span>Reopen</span>
+                        <span>{t("reopen")}</span>
                       </button>
                     )}
                     <button
@@ -302,7 +303,7 @@ export default function ComplaintsList() {
                           d="M6 18L18 6M6 6l12 12"
                         />
                       </svg>
-                      <span>Delete</span>
+                      <span>{t("delete")}</span>
                     </button>
                   </div>
                 </div>
@@ -317,7 +318,7 @@ export default function ComplaintsList() {
         <DialogContent className="max-w-4xl w-full p-8">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">
-              Complaint Details
+              {t("complaintDetails")}
             </DialogTitle>
             <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
           </DialogHeader>
@@ -330,15 +331,15 @@ export default function ComplaintsList() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Building</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("building")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.building}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Room</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("room")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.room}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("status")}</span>
                     <span
                       className={`inline-block px-3 py-1 text-sm font-medium rounded-full mt-1 ${getStatusColor(
                         selectedComplaint.status
@@ -350,19 +351,19 @@ export default function ComplaintsList() {
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Category</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("category")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.category}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Priority</span>
-                    <p className="text-gray-900 font-medium">{selectedComplaint.priority ?? "Normal"}</p>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("priority")}</span>
+                    <p className="text-gray-900 font-medium">{selectedComplaint.priority ?? t("normal")}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Date Submitted</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("dateSubmitted")}</span>
                     <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Time Slot</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("timeSlot")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.preferredTime || "N/A"}</p>
                   </div>
                 </div>
@@ -374,7 +375,7 @@ export default function ComplaintsList() {
               onClick={closeDialog}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
             >
-              Close
+              {t("close")}
             </button>
           </DialogFooter>
         </DialogContent>
@@ -385,24 +386,24 @@ export default function ComplaintsList() {
         <DialogContent className="max-w-md p-6">
           <DialogHeader>
             <DialogTitle className="text-red-700 font-bold text-xl mb-4">
-              Confirm Reopen
+              {t("confirmReopen")}
             </DialogTitle>
           </DialogHeader>
           <div className="text-gray-800">
-            <p>Are you sure you want to reopen this complaint? This action cannot be undone.</p>
+            <p>{t("reopenConfirmMessage")}</p>
           </div>
           <DialogFooter>
             <button
               onClick={closeReopenDialog}
               className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition mr-2"
             >
-              Cancel
+              {t("cancel")}
             </button>
             <button
               onClick={confirmReopen}
               className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
             >
-              Confirm Reopen
+              {t("confirmReopen")}
             </button>
           </DialogFooter>
         </DialogContent>

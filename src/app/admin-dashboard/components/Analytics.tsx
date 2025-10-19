@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { jsPDF } from "jspdf";
 import { CSVLink } from "react-csv";
+import { useTranslation } from "react-i18next";
 
 type AnalyticsProps = Record<string, never>;
 
@@ -24,6 +25,7 @@ interface Complaint {
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042"];
 
 export default function Analytics({}: AnalyticsProps) {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -113,11 +115,11 @@ export default function Analytics({}: AnalyticsProps) {
 
   return (
     <div className="p-6 bg-white rounded shadow-md space-y-6">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-900">Analytics</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-gray-900">{t("analytics")}</h2>
 
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
-          <h3 className="text-lg font-medium mb-2 text-gray-800">Complaints by Status</h3>
+          <h3 className="text-lg font-medium mb-2 text-gray-800">{t("Complaints By Status")}</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barData}>
               <XAxis dataKey="status" />
@@ -130,7 +132,7 @@ export default function Analytics({}: AnalyticsProps) {
         </div>
 
         <div className="flex-1">
-          <h3 className="text-lg font-medium mb-2 text-gray-800">Complaints Resolved Over Time</h3>
+          <h3 className="text-lg font-medium mb-2 text-gray-800">{t("Complaints Resolved Over Time")}</h3>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={lineData}>
               <XAxis dataKey="date" />
@@ -144,7 +146,7 @@ export default function Analytics({}: AnalyticsProps) {
       </div>
 
       <div>
-        <h3 className="text-lg font-medium mb-2 text-gray-800">Category-wise Complaint Ratio</h3>
+        <h3 className="text-lg font-medium mb-2 text-gray-800">{t("Category Wise Complaint Ratio")}</h3>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
@@ -171,14 +173,14 @@ export default function Analytics({}: AnalyticsProps) {
           onClick={exportPDF}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
-          Export PDF
+          {t("Export PDF")}
         </button>
         <CSVLink
           data={csvData}
           filename={"admin-analytics.csv"}
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
-          Export CSV
+          {t("Export CSV")}
         </CSVLink>
       </div>
     </div>

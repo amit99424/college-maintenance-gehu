@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface ChangePasswordProps {
   onSuccess?: () => void;
 }
 
 export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
+  const { t } = useTranslation();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,13 +23,13 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
     setIsLoading(true);
 
     if (newPassword !== confirmPassword) {
-      setError("New passwords do not match.");
+      setError(t("passwordMismatch"));
       setIsLoading(false);
       return;
     }
 
     if (newPassword.length < 6) {
-      setError("New password must be at least 6 characters long.");
+      setError(t("passwordTooShort"));
       setIsLoading(false);
       return;
     }
@@ -36,7 +38,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
       // Get user data from localStorage
       const userData = JSON.parse(localStorage.getItem("userData") || "{}");
       if (!userData.email) {
-        setError("User not authenticated.");
+        setError(t("userNotAuthenticated"));
         setIsLoading(false);
         return;
       }
@@ -57,12 +59,12 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to change password.");
+        setError(data.error || t("passwordChangeFailed"));
         setIsLoading(false);
         return;
       }
 
-      setSuccess("Password changed successfully!");
+      setSuccess(t("passwordChanged"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -72,7 +74,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
       }
     } catch (error) {
       console.error("Password change error:", error);
-      setError("Failed to change password. Please try again.");
+      setError(t("passwordChangeError"));
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +82,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
 
   return (
     <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Change Password</h2>
+      <h2 className="text-2xl font-bold mb-4">{t("changePassword")}</h2>
 
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -97,7 +99,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Current Password
+            {t("currentPassword")}
           </label>
           <input
             type="password"
@@ -110,7 +112,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            New Password
+            {t("newPassword")}
           </label>
           <input
             type="password"
@@ -123,7 +125,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Confirm New Password
+            {t("confirmNewPassword")}
           </label>
           <input
             type="password"
@@ -143,7 +145,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {isLoading ? "Changing..." : "Change Password"}
+          {isLoading ? t("changing") : t("changePassword")}
         </button>
       </form>
     </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { collection, query, where, orderBy, onSnapshot, DocumentData, Timestamp, updateDoc, doc } from "firebase/firestore";
 import { db, auth } from "@/firebase/config";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 
 interface Notification {
   id: string;
@@ -17,6 +18,7 @@ interface Notification {
 }
 
 export default function Notifications() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -68,7 +70,7 @@ export default function Notifications() {
   const openDialog = (notification: Notification) => {
     setSelectedNotification(notification);
     setIsDialogOpen(true);
-    
+
     // Mark as read when opened
     if (!notification.read) {
       markAsRead(notification.id);
@@ -93,7 +95,7 @@ export default function Notifications() {
   const markAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter(n => !n.read);
-      const promises = unreadNotifications.map(notification => 
+      const promises = unreadNotifications.map(notification =>
         updateDoc(doc(db, "notifications", notification.id), { read: true })
       );
       await Promise.all(promises);
@@ -106,7 +108,7 @@ export default function Notifications() {
     return (
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="text-center py-8">Loading notifications...</div>
+          <div className="text-center py-8">{t("loading")}</div>
         </div>
       </div>
     );
@@ -117,21 +119,21 @@ export default function Notifications() {
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-md p-3 sm:p-6 md:p-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
-            <h2 className="text-xl font-semibold text-gray-800">Notifications</h2>
+            <h2 className="text-xl font-semibold text-gray-800">{t("notifications")}</h2>
 
             {notifications.some(n => !n.read) && (
               <button
                 onClick={markAllAsRead}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >
-                Mark all as read
+                {t("markAsRead")}
               </button>
             )}
           </div>
 
           {notifications.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">No notifications found.</p>
+              <p className="text-gray-500">{t("noNotifications")}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -156,7 +158,7 @@ export default function Notifications() {
                           }}
                           className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
                         >
-                          Mark as read
+                          {t("markAsRead")}
                         </button>
                       )}
                       {!notification.read && (
@@ -184,7 +186,7 @@ export default function Notifications() {
         <DialogContent className="max-w-md p-6">
           <DialogHeader>
             <DialogTitle className="text-blue-700 font-bold text-xl mb-4">
-              Notification Details
+              {t("notificationDetails")}
             </DialogTitle>
           </DialogHeader>
           {selectedNotification && (
@@ -208,7 +210,7 @@ export default function Notifications() {
               onClick={closeDialog}
               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
             >
-              Close
+              {t("close")}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -13,6 +13,7 @@ import Profile from "./components/Profile";
 import ChangePassword from "./components/ChangePassword";
 import Notifications from "./components/Notifications";
 import NotificationDropdown from "@/components/NotificationDropdown";
+import { useTranslation } from "react-i18next";
 
 interface UserData {
   name?: string;
@@ -33,6 +34,7 @@ interface Notification {
 }
 
 export default function StaffDashboard() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -61,7 +63,7 @@ export default function StaffDashboard() {
 
       return () => unsubscribe();
     } else {
-      // No userData in localStorage, redirect to login
+      // No userData in localStorage, redirecting to login
       console.log("DEBUG: No userData in localStorage, redirecting to login");
       router.push("/login");
       setLoading(false);
@@ -138,7 +140,7 @@ export default function StaffDashboard() {
         return userData ? (
           <Profile userData={userData} />
         ) : (
-          <div className="text-center text-gray-500">Loading profile...</div>
+          <div className="text-center text-gray-500">{t("loading")}</div>
         );
       case "change-password":
         return <ChangePassword onSuccess={() => setActiveSection("profile")} />;
@@ -150,7 +152,7 @@ export default function StaffDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+        <div className="text-lg">{t("loading")}</div>
       </div>
     );
   }
@@ -208,7 +210,7 @@ export default function StaffDashboard() {
             />
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="relative flex items-center space-x-3 z-50">
             {/* Notification Dropdown */}
             <NotificationDropdown
               notifications={notifications}
@@ -218,24 +220,20 @@ export default function StaffDashboard() {
               onMarkAsRead={handleMarkAsRead}
             />
 
-            {/* Hamburger for Mobile */}
+            {/* Hamburger menu button for mobile */}
             <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-2 rounded-md hover:bg-gray-200 classic-btn shadow-md"
               aria-label="Toggle sidebar"
+              className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             >
               <svg
-                className="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-gray-600"
                 fill="none"
-                stroke="currentColor"
                 viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>

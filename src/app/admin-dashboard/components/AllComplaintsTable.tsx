@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface AllComplaintsTableProps {
   adminName?: string;
@@ -41,6 +42,7 @@ interface Complaint {
 }
 
 export default function AllComplaintsTable({ initialStatusFilter }: { initialStatusFilter?: string } = {}) {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -260,13 +262,13 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-gray-900 font-semibold mb-6">All Complaints</h3>
+      <h3 className="text-gray-900 font-semibold mb-6">{t("All Complaints")}</h3>
 
       {/* Search input */}
       <div className="mb-6">
         <input
           type="text"
-          placeholder="Search by title or description"
+          placeholder={t("Search By Title Or Description")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
@@ -281,11 +283,11 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
           onChange={(e) => setStatusFilter(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         >
-          <option value="">All Statuses</option>
-          <option value="Pending">Pending</option>
-          <option value="in-progress">In Progress</option>
-          <option value="Completed">Completed</option>
-          <option value="Reopened">Reopened</option>
+          <option value="">{t("All Statuses")}</option>
+          <option value="Pending">{t("pending")}</option>
+          <option value="in-progress">{t("inProgress")}</option>
+          <option value="Completed">{t("resolved")}</option>
+          <option value="Reopened">{t("reopened")}</option>
         </select>
 
         {/* Category Filter */}
@@ -294,7 +296,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         >
-          <option value="">All Categories</option>
+          <option value="">{t("All Categories")}</option>
           {uniqueCategories.map((category) => (
             <option key={category} value={category}>
               {category}
@@ -308,7 +310,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
           onChange={(e) => setBuildingFilter(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         >
-          <option value="">All Buildings</option>
+          <option value="">{t("All Buildings")}</option>
           {uniqueBuildings.map((building) => (
             <option key={building} value={building}>
               {building}
@@ -322,9 +324,9 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
           onChange={(e) => setSubmittedByFilter(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         >
-          <option value="">All Submitted By</option>
-          <option value="student">Student</option>
-          <option value="staff">Staff</option>
+          <option value="">{t("All Submitted By")}</option>
+          <option value="student">{t("student")}</option>
+          <option value="staff">{t("staff")}</option>
         </select>
       </div>
 
@@ -334,28 +336,28 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Title
+                {t("Title")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Category
+                {t("Category")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Building
+                {t("Building")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Room
+                {t("Room")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Status
+                {t("Status")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Submitted By
+                {t("Submitted By")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Date
+                {t("Date")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Actions
+                {t("Actions")}
               </th>
             </tr>
           </thead>
@@ -363,7 +365,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
             {filteredComplaints.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-gray-700">
-                  No complaints found matching your filters.
+                  {t("No complaints found matching your filters.")}
                 </td>
               </tr>
             ) : (
@@ -426,7 +428,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
       {/* Mobile card layout */}
       <div className="md:hidden space-y-4">
         {filteredComplaints.length === 0 ? (
-          <div className="text-center text-gray-700">No complaints found matching your filters.</div>
+          <div className="text-center text-gray-700">{t("No complaints found matching your filters.")}</div>
         ) : (
           filteredComplaints.map((complaint) => (
             <div
@@ -483,7 +485,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
 
       {/* Results count */}
       <div className="mt-4 text-sm text-gray-800">
-        Showing {filteredComplaints.length} of {complaints.length} complaints
+        {t("showing")} {filteredComplaints.length} {t("of")} {complaints.length} {t("complaints")}
       </div>
 
       {/* View Modal */}

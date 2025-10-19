@@ -1,12 +1,11 @@
 "use client";
-  
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
 import { doc, getDoc, collection, query, where, orderBy, onSnapshot, DocumentData, updateDoc } from "firebase/firestore";
 import { Toaster } from "sonner";
-import ThemeToggle from "@/components/ThemeToggle";
 import Sidebar from "./components/Sidebar";
 import DashboardHome from "./components/DashboardHome";
 import ComplaintsTable from "./components/ComplaintsTable";
@@ -15,6 +14,8 @@ import Profile from "./components/Profile";
 import ChangePassword from "./components/ChangePassword";
 import Notifications from "./components/Notifications";
 import NotificationDropdown from "@/components/NotificationDropdown";
+
+import { useTranslation } from "react-i18next";
 
 interface UserData {
   name?: string;
@@ -27,6 +28,7 @@ interface UserData {
 }
 
 export default function SupervisorDashboard() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -62,7 +64,7 @@ export default function SupervisorDashboard() {
 
       return () => unsubscribe();
     } else {
-      // No userData in localStorage, redirect to login
+      // No userData in localStorage, redirecting to login
       console.log("DEBUG: No userData in localStorage, redirecting to login");
       router.push("/login");
       setLoading(false);
@@ -137,7 +139,7 @@ export default function SupervisorDashboard() {
         return <Notifications />;
       case "profile":
         {console.log("SupervisorDashboard userData:", userData);}
-        return userData ? <Profile userData={userData} /> : <div>Loading profile...</div>;
+        return userData ? <Profile userData={userData} /> : <div>{t("loading")}</div>;
       case "change-password":
         return <ChangePassword onSuccess={() => setActiveSection("profile")} />;
       default:
@@ -148,7 +150,7 @@ export default function SupervisorDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+        <div className="text-lg">{t("loading")}</div>
       </div>
     );
   }

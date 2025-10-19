@@ -11,6 +11,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { useLanguage } from "../../contexts/LanguageContext";
+import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
 
 const MAINTENANCE_KEY = "gehuservice@04";
@@ -210,6 +211,8 @@ export default function LoginPage() {
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
+
+
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         <Image
@@ -222,14 +225,13 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/20" />
       </div>
 
-      {/* Language Toggle in top-right corner of page */}
-      <div className="absolute top-4 right-4 z-20">
-        <LanguageToggle />
-      </div>
-
       {/* Main Container */}
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8">
-        <div className="w-[90%] sm:w-full max-w-md bg-white/20 backdrop-transparent-lg rounded-2xl shadow-2xl border border-white/20 overflow-y-auto max-h-[90vh] animate-fadeInZoom">
+        <div className="relative w-[90%] sm:w-full max-w-md bg-white/20 backdrop-transparent-lg rounded-2xl shadow-2xl border border-white/20 overflow-y-auto max-h-[90vh] animate-fadeInZoom">
+          {/* Language Toggle in top-right corner */}
+          <div className="absolute top-4 right-4 z-10">
+            <LanguageToggle />
+          </div>
           {/* Logo Area */}
           <div className="bg-blue-200 rounded-t-2xl p-4 flex justify-center items-center shadow-inner">
             <Image
@@ -362,14 +364,19 @@ export default function LoginPage() {
                     {refreshingCaptcha ? "..." : captcha || "------"}
                   </div>
                 </div>
-                <input
-                  type="text"
-                  placeholder={t("enterCaptcha")}
-                  value={captchaInput}
-                  onChange={(e) => setCaptchaInput(e.target.value)}
-                  required
-                  className="w-full p-3 text-sm sm:text-base rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:shadow-lg focus:shadow-green-400/50 bg-white/90 text-gray-900 shadow-md transition-all duration-300"
-                />
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    placeholder={t("enterCaptcha")}
+                    value={captchaInput}
+                    onChange={(e) => setCaptchaInput(e.target.value)}
+                    required
+                    className="w-full pr-12 p-3 text-sm sm:text-base rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:shadow-lg focus:shadow-green-400/50 bg-white/90 text-gray-900 shadow-md transition-all duration-300"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <ThemeToggle />
+                  </div>
+                </div>
                 {captchaError && (
                   <p className="text-xs sm:text-sm text-red-600 font-medium">
                     {captchaError}

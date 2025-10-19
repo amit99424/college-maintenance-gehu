@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface ChangePasswordProps {
   onSuccess: () => void;
 }
 
 export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
+  const { t } = useTranslation();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

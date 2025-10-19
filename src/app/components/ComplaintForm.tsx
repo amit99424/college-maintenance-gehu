@@ -7,6 +7,7 @@ import { db, storage, auth } from "@/firebase/config";
 import EnhancedDropdown from "../student-dashboard/components/EnhancedDropdown";
 import ThirdPartyAutocompleteDropdown from "../student-dashboard/components/ThirdPartyAutocompleteDropdown";
 import SelectDropdown from "../student-dashboard/components/SelectDropdown";
+import { useTranslation } from "react-i18next";
 
 interface RoomData {
   "Building Name"?: string;
@@ -26,6 +27,15 @@ const CATEGORY_OPTIONS = [
   { value: "Internet", label: "Internet", icon: "🌐" },
   { value: "Security", label: "Security", icon: "🔒" },
   { value: "Other", label: "Other", icon: "❓" },
+];
+
+const CATEGORY_OPTIONS_HI = [
+  { value: "Electrical", label: "विद्युत", icon: "💡" },
+  { value: "Plumbing", label: "प्लंबिंग", icon: "🚰" },
+  { value: "Cleaning", label: "सफाई", icon: "🧹" },
+  { value: "Internet", label: "इंटरनेट", icon: "🌐" },
+  { value: "Security", label: "सुरक्षा", icon: "🔒" },
+  { value: "Other", label: "अन्य", icon: "❓" },
 ];
 
 // Custom Dropdown component for category selection
@@ -128,6 +138,7 @@ interface ComplaintFormProps {
 }
 
 export default function ComplaintForm({ hidePreferredDateTime, userRole }: ComplaintFormProps) {
+  const { t } = useTranslation();
   // Import roomStore.json data
   const [roomData, setRoomData] = useState<RoomData[]>([]);
   const [formData, setFormData] = useState({
@@ -315,7 +326,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         });
       });
 
-      setSubmitMessage("Complaint submitted successfully!");
+      setSubmitMessage(t("complaintSubmitted"));
       setShowSimpleSuccessModal(true);
       setFormData({
         title: "",
@@ -331,7 +342,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
       setTimeout(() => setSubmitMessage(""), 3000);
     } catch (error) {
       console.error("Error submitting complaint:", error);
-      setSubmitMessage("Error submitting complaint. Please try again.");
+      setSubmitMessage(t("complaintError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -340,9 +351,9 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
   return (
     <div className="max-w-full px-4 sm:px-6 md:max-w-4xl md:px-0 mx-auto">
       <div className="classic-card p-4 sm:p-6 md:p-6">
-        <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--heading-text)' }}>Submit New Complaint</h2>
+        <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--heading-text)' }}>{t("submitComplaint")}</h2>
         <p className="mb-6" style={{ color: 'var(--paragraph-text)' }}>
-          Please provide detailed information about your maintenance request to help us assist you better.
+          {t("complaintDescription")}
         </p>
         {!showSimpleSuccessModal && submitMessage && (
           <div
@@ -367,15 +378,15 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
-      </button>
-      <h3 className="text-lg font-bold mb-4 text-green-700 text-center">Complaint Submitted Successfully!</h3>
-      <p className="text-center text-gray-700">Thank you for submitting your complaint. We will address it as soon as possible.</p>
+        </button>
+      <h3 className="text-lg font-bold mb-4 text-green-700 text-center">{t("complaintSubmittedTitle")}</h3>
+      <p className="text-center text-gray-700">{t("complaintSubmittedMessage")}</p>
       <div className="mt-6 flex justify-center">
         <button
           onClick={() => setShowSimpleSuccessModal(false)}
           className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
         >
-          Close
+          {t("close")}
         </button>
       </div>
     </div>
@@ -384,27 +395,27 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Complaint Title *
+              {t("complaintTitle")} *
             </label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleInputChange}
-              placeholder="Brief description of the issue..."
+              placeholder={t("complaintTitlePlaceholder")}
               required
               className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Building *
+              {t("building")} *
             </label>
             <EnhancedDropdown
               value={formData.building}
               onChange={handleBuildingChange}
               options={buildingOptions}
-              placeholder="Select or type a building"
+              placeholder={t("selectBuilding")}
               required
               name="building"
             />
@@ -412,48 +423,48 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
           {formData.building && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Room *
+                {t("room")} *
               </label>
               {roomOptions.length > 0 ? (
                 <EnhancedDropdown
                   value={formData.room}
                   onChange={handleRoomChange}
                   options={roomOptions}
-                  placeholder="Select or type a room"
+                  placeholder={t("selectRoom")}
                   required
                   name="room"
                 />
               ) : (
-                <p className="text-gray-500 text-sm italic">No rooms available for the selected building.</p>
+                <p className="text-gray-500 text-sm italic">{t("noRoomsAvailable")}</p>
               )}
             </div>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Detailed Description *
+              {t("detailedDescription")} *
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="Please provide a detailed description of the problem.."
+              placeholder={t("descriptionPlaceholder")}
               rows={4}
               required
               className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <span className="text-xs text-gray-500 mt-1 block">
-              The more details you provide, the faster we can resolve your issue.
+              {t("descriptionHelp")}
             </span>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category *
+              {t("category")} *
             </label>
             <ThirdPartyAutocompleteDropdown
               value={formData.category}
               onChange={handleCategoryChange}
-              options={CATEGORY_OPTIONS}
-              placeholder="Select or type a category"
+              options={CATEGORY_OPTIONS_HI}
+              placeholder={t("selectCategory")}
               required
               name="category"
             />
@@ -462,7 +473,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Preferred Date
+                  {t("preferredDate")}
                 </label>
                 <input
                   type="date"
@@ -474,7 +485,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Preferred Time
+                  {t("preferredTime")}
                 </label>
                 <SelectDropdown
                   name="preferredTime"
@@ -493,7 +504,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
                     { value: "16:00-17:00", label: "04:00 PM - 05:00 PM" },
                     { value: "17:00-18:00", label: "05:00 PM - 06:00 PM" },
                   ]}
-                  placeholder="Select a time slot"
+                  placeholder={t("selectTimeSlot")}
                   required={false}
                 />
               </div>
@@ -501,7 +512,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Upload Image (Optional)
+              {t("uploadImage")}
             </label>
             <input
               type="file"
@@ -511,7 +522,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
             />
             {selectedFile && (
               <p className="mt-2 text-sm text-gray-600">
-                Selected: {selectedFile.name}
+                {t("selectedFile")}: {selectedFile.name}
               </p>
             )}
           </div>
@@ -525,7 +536,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
                   : "classic-btn"
               }`}
             >
-              {isSubmitting ? "Submitting..." : "Submit Complaint"}
+              {isSubmitting ? t("submitting") : t("submitComplaint")}
             </button>
           </div>
         </form>
