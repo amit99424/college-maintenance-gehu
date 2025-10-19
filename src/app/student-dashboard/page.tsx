@@ -201,7 +201,7 @@ export default function StudentDashboard() {
       {/* Main Content */}
       <main className="flex-1 md:ml-64 p-2 md:p-8 w-full">
         {/* Header */}
-        <div className="sticky top-0 z-20 pb-4 mb-6 border-b flex items-center justify-between p-2 sm:p-4 rounded w-full" style={{ backgroundColor: 'var(--header-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+        <div className="fixed top-0 z-20 pb-4 border-b flex items-center justify-between p-2 sm:p-4 rounded w-full md:left-64" style={{ backgroundColor: 'var(--header-bg)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
           <div className="flex flex-col items-start space-y-2">
             <img
               src="/university-logo.png"
@@ -240,7 +240,9 @@ export default function StudentDashboard() {
         </div>
 
         {/* Active Section */}
-        {renderActiveSection()}
+        <div className="pt-24 md:pt-24">
+          {renderActiveSection()}
+        </div>
       </main>
     </div>
   );

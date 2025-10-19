@@ -226,14 +226,14 @@ export default function LoginPage() {
       </div>
 
       {/* Main Container */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8">
-        <div className="relative w-[90%] sm:w-full max-w-md bg-white/20 backdrop-transparent-lg rounded-2xl shadow-2xl border border-white/20 overflow-y-auto max-h-[90vh] animate-fadeInZoom">
+      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="relative w-full max-w-sm bg-white/20 backdrop-transparent-lg rounded-2xl shadow-2xl border border-white/20 overflow-y-auto min-h-[95vh] max-h-[95vh] animate-fadeInZoom">
           {/* Language Toggle in top-right corner */}
           <div className="absolute top-4 right-4 z-10">
             <LanguageToggle />
           </div>
           {/* Logo Area */}
-          <div className="bg-blue-200 rounded-t-2xl p-4 flex justify-center items-center shadow-inner">
+          <div className="bg-white rounded-t-2xl p-4 flex justify-center items-center shadow-inner">
             <Image
               src="/university-logo.png"
               alt="University Logo"
