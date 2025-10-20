@@ -17,6 +17,8 @@ import {
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 interface AllComplaintsTableProps {
   adminName?: string;
@@ -259,6 +261,32 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
       </div>
     );
   }
+
+  // Export to Excel function
+  const exportToExcel = () => {
+    const data = filteredComplaints.map((complaint) => ({
+      'Complaint ID': complaint.id,
+      'Title': complaint.title,
+      'Description': complaint.description,
+      'Building / Block': complaint.building,
+      'Room / Location': complaint.room,
+      'Category': complaint.category,
+      'Status': complaint.status,
+      'Date Submitted': formatDate(complaint.createdAt),
+      'Time Slot': complaint.preferredTime || 'N/A',
+      'Submitted By (Name)': getUserTypeFromEmail(complaint.userEmail),
+      'Submitted By (Email)': complaint.userEmail,
+      'Assigned To (Supervisor)': complaint.supervisorName || 'Not Assigned',
+      'Last Updated On': complaint.updatedAt ? formatDate(complaint.updatedAt) : 'N/A',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Complaints');
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, 'Complaints_Report.xlsx');
+  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">

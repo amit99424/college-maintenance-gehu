@@ -8,8 +8,6 @@ import {
   LineChart, Line,
   PieChart, Pie, Cell
 } from "recharts";
-import { jsPDF } from "jspdf";
-import { CSVLink } from "react-csv";
 import { useTranslation } from "react-i18next";
 
 interface AnalyticsProps {
@@ -88,26 +86,24 @@ export default function Analytics({ category }: AnalyticsProps) {
     value
   }));
 
-  // Export PDF
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.text(t("Analytics"), 10, 10);
-    doc.text(t("Complaints By Status"), 10, 20);
-    doc.text(JSON.stringify(barData, null, 2), 10, 30);
-    doc.text(t("Complaints Resolved Over Time"), 10, 60);
-    doc.text(JSON.stringify(lineData, null, 2), 10, 70);
-    doc.text(t("Category Wise Complaint Ratio"), 10, 100);
-    doc.text(JSON.stringify(pieData, null, 2), 10, 110);
-    doc.save("Analytics.pdf");
+
+
+  // Helper to determine user type from email domain
+  const getUserTypeFromEmail = (email: string): string => {
+    if (!email) return "Unknown";
+    if (email.toLowerCase().endsWith("@gmail.com")) return "Student";
+    if (email.toLowerCase().endsWith("@staff.com")) return "Staff";
+    return "Unknown";
   };
 
-  // CSV data
-  const csvData = complaints.map(c => ({
-    id: c.id,
-    status: c.status,
-    category: c.category,
-    createdAt: (c.createdAt instanceof Timestamp ? c.createdAt.toDate() : c.createdAt).toISOString()
-  }));
+  // Format date from Timestamp or Date
+  const formatDate = (timestamp: Timestamp | Date | undefined) => {
+    if (!timestamp) return "N/A";
+    const date = timestamp instanceof Timestamp ? timestamp.toDate() : timestamp;
+    return date.toLocaleString();
+  };
+
+
 
   if (loading) {
     return (
@@ -175,21 +171,7 @@ export default function Analytics({ category }: AnalyticsProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="flex space-x-4">
-        <button
-          onClick={exportPDF}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          {t("Export PDF")}
-        </button>
-        <CSVLink
-          data={csvData}
-          filename={"analytics.csv"}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          {t("Export CSV")}
-        </CSVLink>
-      </div>
+
     </div>
   );
 }

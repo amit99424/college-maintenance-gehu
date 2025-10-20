@@ -8,9 +8,10 @@ import {
   LineChart, Line,
   PieChart, Pie, Cell
 } from "recharts";
-import { jsPDF } from "jspdf";
 import { CSVLink } from "react-csv";
 import { useTranslation } from "react-i18next";
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 type AnalyticsProps = Record<string, never>;
 
@@ -81,26 +82,60 @@ export default function Analytics({}: AnalyticsProps) {
     value
   }));
 
-  // Export PDF
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Admin Dashboard Analytics", 10, 10);
-    doc.text("Bar Chart: Complaints by Status", 10, 20);
-    doc.text(JSON.stringify(barData, null, 2), 10, 30);
-    doc.text("Line Chart: Complaints Resolved Over Time", 10, 60);
-    doc.text(JSON.stringify(lineData, null, 2), 10, 70);
-    doc.text("Pie Chart: Category-wise Complaint Ratio", 10, 100);
-    doc.text(JSON.stringify(pieData, null, 2), 10, 110);
-    doc.save("admin-analytics.pdf");
+
+
+  // Helper to determine user type from email domain
+  const getUserTypeFromEmail = (email: string): string => {
+    if (!email) return "Unknown";
+    if (email.toLowerCase().endsWith("@gmail.com")) return "Student";
+    if (email.toLowerCase().endsWith("@staff.com")) return "Staff";
+    return "Unknown";
   };
 
-  // CSV data
-  const csvData = complaints.map(c => ({
-    id: c.id,
-    status: c.status,
-    category: c.category,
-    createdAt: (c.createdAt instanceof Timestamp ? c.createdAt.toDate() : c.createdAt).toISOString()
-  }));
+  // Format date from Timestamp or Date
+  const formatDate = (timestamp: Timestamp | Date | undefined) => {
+    if (!timestamp) return "N/A";
+    const date = timestamp instanceof Timestamp ? timestamp.toDate() : timestamp;
+    return date.toLocaleString();
+  };
+
+  // Export to Excel function
+  const exportToExcel = () => {
+    const data = complaints.map((complaint) => ({
+      'Complaint ID': complaint.id,
+      'Title': complaint.title as string,
+      'Description': complaint.description as string,
+      'Building / Block': complaint.building as string,
+      'Room / Location': complaint.room as string,
+      'Category': complaint.category,
+      'Status': complaint.status,
+      'Date Submitted': formatDate(complaint.createdAt),
+      'Time Slot': (complaint.preferredTime as string) || 'N/A',
+      'Submitted By (Name)': getUserTypeFromEmail(complaint.userEmail as string),
+      'Submitted By (Email)': complaint.userEmail as string,
+      'Assigned To (Supervisor)': (complaint.supervisorName as string) || 'Not Assigned',
+      'Last Updated On': complaint.updatedAt ? formatDate(complaint.updatedAt as Timestamp | Date) : 'N/A',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Complaints');
+
+    // Make headers bold
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+    for (let col = range.s.c; col <= range.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (worksheet[cellAddress]) {
+        worksheet[cellAddress].s = {
+          font: { bold: true }
+        };
+      }
+    }
+
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, 'Complaints_Report.xlsx');
+  };
 
   if (loading) {
     return (
@@ -170,18 +205,11 @@ export default function Analytics({}: AnalyticsProps) {
 
       <div className="flex space-x-4">
         <button
-          onClick={exportPDF}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          {t("Export PDF")}
-        </button>
-        <CSVLink
-          data={csvData}
-          filename={"admin-analytics.csv"}
+          onClick={exportToExcel}
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
-          {t("Export CSV")}
-        </CSVLink>
+          {t("Export To Excel")}
+        </button>
       </div>
     </div>
   );
