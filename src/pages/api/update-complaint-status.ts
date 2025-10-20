@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../firebase/config';
-import { doc, updateDoc, getDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, addDoc, collection, Timestamp, query, where, getDocs } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       lastUpdatedByRole: 'Admin',
     });
 
-    // Create notification if message is provided
+    // Create notification for the student
     if (message && message.trim()) {
       await addDoc(collection(db, 'notifications'), {
         userId: complaintData.userId,
@@ -54,6 +54,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         updatedBy: 'Admin',
       });
     }
+
+    // Create notifications for all admins
+    const adminQuery = query(collection(db, 'users'), where('role', '==', 'admin'));
+    const adminsSnapshot = await getDocs(adminQuery);
+    const adminNotifications: any[] = [];
+    adminsSnapshot.forEach((docSnap) => {
+      adminNotifications.push(addDoc(collection(db, 'notifications'), {
+        userId: docSnap.id,
+        complaintId: complaintId,
+        complaintTitle: complaintData.title,
+        message: `Complaint "${complaintData.title}" status updated to ${newStatus}`,
+        createdAt: new Date(),
+        read: false,
+        updatedBy: 'Admin',
+      }));
+    });
+    await Promise.all(adminNotifications);
 
     res.status(200).json({ success: true, message: 'Complaint status updated successfully' });
   } catch (error) {

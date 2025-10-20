@@ -279,9 +279,11 @@ export default function ComplaintForm() {
           userId: doc.id,
           message: `New complaint submitted: "${formData.title}" (${formData.category})`,
           complaintId: complaintRef.id,
+          complaintTitle: formData.title,
           category: formData.category,
-          timestamp: serverTimestamp(),
-          isRead: false,
+          createdAt: serverTimestamp(),
+          read: false,
+          updatedBy: "student",
         });
       });
 
@@ -293,9 +295,11 @@ export default function ComplaintForm() {
           userId: doc.id,
           message: `New complaint submitted: "${formData.title}" (${formData.category})`,
           complaintId: complaintRef.id,
+          complaintTitle: formData.title,
           category: formData.category,
-          timestamp: serverTimestamp(),
-          isRead: false,
+          createdAt: serverTimestamp(),
+          read: false,
+          updatedBy: "student",
         });
       });
 

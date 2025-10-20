@@ -189,7 +189,7 @@ export default function ComplaintsList() {
                 >
                   {status === "all"
                     ? `${t("all")} (${complaints.length})`
-                    : `${status.charAt(0).toUpperCase() + status.slice(1)} (${
+                    : `${t(status.toLowerCase().replace(/\s+/g, '-'))} (${
                         complaints.filter((c) => c.status === status).length
                       })`}
                 </button>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import EnhancedDropdown from "./EnhancedDropdown";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db, auth } from "@/firebase/config";
-import { useLanguage } from "../../../contexts/LanguageContext";
+import { useTranslation } from "react-i18next";
 
 interface UserData {
   name?: string;
@@ -30,7 +30,7 @@ interface MenuItem {
 
 export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen, onLogout }: SidebarProps) {
   const [unreadCount, setUnreadCount] = useState(0);
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -147,7 +147,6 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
             <button
               onClick={() => handleMenuItemClick("change-password")}
               className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-gray-700 hover:bg-gray-100"
-              style={{ color: 'var(--paragraph-text)' }}
             >
               <span className="text-lg mr-3">🔑</span>
               <span className="font-medium">{t("changePassword")}</span>

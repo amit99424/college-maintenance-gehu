@@ -121,7 +121,6 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
             <button
               onClick={() => handleMenuItemClick("change-password")}
               className="w-full flex items-center px-4 py-3 text-left transition-colors rounded-md text-gray-700 hover:bg-gray-100"
-              style={{ color: 'var(--paragraph-text)' }}
             >
               <span className="text-lg mr-3">🔑</span>
               <span className="font-medium">{t("changePassword")}</span>

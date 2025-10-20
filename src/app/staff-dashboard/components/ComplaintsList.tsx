@@ -189,12 +189,8 @@ export default function ComplaintsList() {
                 >
                   {status === "all"
                     ? `${t("all")} (${complaints.length})`
-                    : `${status.charAt(0).toUpperCase() + status.slice(1)} (${
-                        complaints.filter((c) => {
-                          const complaintStatus = c.status.toLowerCase().replace(/\s+/g, '-');
-                          const filterValue = status.toLowerCase().replace(/\s+/g, '-');
-                          return complaintStatus === filterValue || c.status === status;
-                        }).length
+                    : `${t(status.toLowerCase().replace(/\s+/g, '-'))} (${
+                        complaints.filter((c) => c.status === status).length
                       })`}
                 </button>
               ))}

@@ -240,6 +240,18 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
     }
   };
 
+  // Get translated status
+  const getTranslatedStatus = (status: string) => {
+    const normalized = status.toLowerCase().replace(' ', '');
+    switch (normalized) {
+      case 'pending': return t('pending');
+      case 'inprogress': return t('inProgress');
+      case 'completed': return t('resolved');
+      case 'reopened': return t('reopened');
+      default: return status;
+    }
+  };
+
   // Format date from Timestamp or Date
   const formatDate = (timestamp: Timestamp | Date | undefined) => {
     if (!timestamp) return "N/A";
@@ -417,7 +429,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
                         complaint.status
                       )}`}
                     >
-                      {complaint.status}
+                      {getTranslatedStatus(complaint.status)}
                     </span>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap capitalize text-gray-900">
@@ -434,15 +446,15 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
                         onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
                         className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
-                        <option value="pending">Pending</option>
-                        <option value="in progress">In Progress</option>
-                        <option value="completed">Completed</option>
+                        <option value="pending">{t("pending")}</option>
+                        <option value="in progress">{t("inProgress")}</option>
+                        <option value="completed">{t("resolved")}</option>
                       </select>
                       <button
                         onClick={() => openViewModal(complaint)}
                         className="ml-2 text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                       >
-                        View
+                        {t("view")}
                       </button>
                     </div>
                   </td>
@@ -470,7 +482,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
                     complaint.status
                   )}`}
                 >
-                  {complaint.status}
+                  {getTranslatedStatus(complaint.status)}
                 </span>
               </div>
               <p className="text-sm text-gray-900 mb-1">
@@ -494,15 +506,16 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
                   onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
                   className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="completed">Completed</option>
+                  <option value="pending">{t("pending")}</option>
+                  <option value="in-progress">{t("inProgress")}</option>
+                  <option value="completed">{t("resolved")}</option>
+                  <option value="reopened">{t("reopened")}</option>
                 </select>
                 <button
                   onClick={() => openViewModal(complaint)}
                   className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                  View
+                  {t("view")}
                 </button>
 
               </div>
@@ -528,7 +541,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
               &times;
             </button>
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Complaint Details</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t("Complaint Details")}</h2>
               <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
@@ -539,35 +552,35 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Building</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Building")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.building}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Room</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Room")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.room}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Status")}</span>
                     <span
                       className={`inline-block px-3 py-1 text-sm font-medium rounded-full mt-1 ${getStatusColor(
                         selectedComplaint.status
                       )}`}
                     >
-                      {selectedComplaint.status}
+                      {getTranslatedStatus(selectedComplaint.status)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Category</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Category")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.category}</p>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Submitted By</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Submitted By")}</span>
                     <p className="text-gray-900 font-medium capitalize">{getUserTypeFromEmail(selectedComplaint.userEmail)}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Last Updated By</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Last Updated By")}</span>
                     <p className="text-gray-900 font-medium">
                       {selectedComplaint.supervisorName || selectedComplaint.lastUpdatedBy
                         ? `${selectedComplaint.supervisorName || selectedComplaint.lastUpdatedBy} (Supervisor)`
@@ -575,11 +588,11 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
                     </p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Date Submitted</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Date Submitted")}</span>
                     <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Time Slot</span>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Time Slot")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.preferredTime || "N/A"}</p>
                   </div>
                 </div>

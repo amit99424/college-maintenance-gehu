@@ -29,7 +29,7 @@ interface Complaint {
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042"];
 
-export default function Analytics({}: AnalyticsProps) {
+export default function Analytics({ }: AnalyticsProps) {
   const { t } = useTranslation();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -298,17 +298,17 @@ export default function Analytics({}: AnalyticsProps) {
 
       {/* Filter Panel */}
       <div className="bg-gray-50 p-4 rounded-lg border">
-        <h3 className="text-lg font-medium mb-4 text-gray-800">Filter Complaints Before Export</h3>
+        <h3 className="text-lg font-medium mb-4 text-gray-800">{t("Filter Complaints Before Export")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-4">
           {/* Category Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("Category")}</label>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             >
-              <option value="">All Categories</option>
+              <option value="">{t("All Categories")}</option>
               <option value="electrical">Electrical</option>
               <option value="plumbing">Plumbing</option>
               <option value="cleaning">Cleaning</option>
@@ -320,13 +320,13 @@ export default function Analytics({}: AnalyticsProps) {
 
           {/* Status Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("Status")}</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             >
-              <option value="">All Statuses</option>
+              <option value="">{t("All Statuses")}</option>
               <option value="pending">Pending</option>
               <option value="in progress">In Progress</option>
               <option value="resolved">Resolved</option>
@@ -337,13 +337,13 @@ export default function Analytics({}: AnalyticsProps) {
 
           {/* Building Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Building / Block</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("Building / Block")}</label>
             <select
               value={buildingFilter}
               onChange={(e) => setBuildingFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             >
-              <option value="">All Buildings</option>
+              <option value="">{t("All Buildings")}</option>
               {uniqueBuildings.map((building) => (
                 <option key={building} value={building}>
                   {building}
@@ -354,27 +354,27 @@ export default function Analytics({}: AnalyticsProps) {
 
           {/* Submitted By Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Submitted By</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("Submitted By")}</label>
             <select
               value={submittedByFilter}
               onChange={(e) => setSubmittedByFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             >
-              <option value="">All</option>
-              <option value="staff">Staff</option>
-              <option value="student">Student</option>
+              <option value="">{t("All")}</option>
+              <option value="staff">{t("Staff")}</option>
+              <option value="student">{t("Student")}</option>
             </select>
           </div>
 
           {/* Assigned To Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("Assigned To")}</label>
             <select
               value={assignedToFilter}
               onChange={(e) => setAssignedToFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             >
-              <option value="">All Supervisors</option>
+              <option value="">{t("All Supervisors")}</option>
               {supervisors.map((supervisor) => (
                 <option key={supervisor} value={supervisor}>
                   {supervisor}
@@ -385,25 +385,25 @@ export default function Analytics({}: AnalyticsProps) {
 
           {/* Start Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("Start Date")}</label>
             <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
               dateFormat="dd/MM/yyyy"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              placeholderText="Select start date"
+              placeholderText={t("Select start date")}
             />
           </div>
 
           {/* End Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("End Date")}</label>
             <DatePicker
               selected={endDate}
               onChange={(date) => setEndDate(date)}
               dateFormat="dd/MM/yyyy"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              placeholderText="Select end date"
+              placeholderText={t("Select end date")}
             />
           </div>
         </div>
@@ -414,14 +414,14 @@ export default function Analytics({}: AnalyticsProps) {
             onClick={clearFilters}
             className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
           >
-            Clear Filters
+            {t("Clear Filters")}
           </button>
           <button
             onClick={exportToExcel}
             disabled={exportLoading}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {exportLoading ? "Exporting..." : `Export Filtered Data (${filteredComplaints.length})`}
+            {exportLoading ? t("Exporting...") : `${t("Export Filtered Data")} (${filteredComplaints.length})`}
           </button>
         </div>
       </div>

@@ -271,7 +271,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         updatedAt: serverTimestamp(),
       });
 
-      // Create notifications for all admins
+      // Create notifications for all admins (including maintenance role)
       const { query, where, getDocs } = await import("firebase/firestore");
       const adminQuery = query(collection(db, "users"), where("role", "==", "admin"));
       const adminsSnapshot = await getDocs(adminQuery);
@@ -280,6 +280,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
           userId: doc.id,
           message: `New complaint submitted: "${formData.title}" (${formData.category})`,
           complaintId: complaintRef.id,
+          complaintTitle: formData.title,
           category: formData.category,
           createdAt: serverTimestamp(),
           read: false,
@@ -295,6 +296,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
           userId: doc.id,
           message: `New complaint submitted: "${formData.title}" (${formData.category})`,
           complaintId: complaintRef.id,
+          complaintTitle: formData.title,
           category: formData.category,
           createdAt: serverTimestamp(),
           read: false,
@@ -310,6 +312,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
           userId: doc.id,
           message: `New complaint submitted: "${formData.title}" (${formData.category})`,
           complaintId: complaintRef.id,
+          complaintTitle: formData.title,
           category: formData.category,
           createdAt: serverTimestamp(),
           read: false,

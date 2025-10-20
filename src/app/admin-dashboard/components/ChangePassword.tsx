@@ -19,12 +19,12 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      toast.error("New passwords do not match");
+      toast.error(t("passwordMismatch"));
       return;
     }
 
     if (newPassword.length < 6) {
-      toast.error("New password must be at least 6 characters long");
+      toast.error(t("passwordTooShort"));
       return;
     }
 
@@ -34,7 +34,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
       // Get user data from localStorage
       const userData = JSON.parse(localStorage.getItem("userData") || "{}");
       if (!userData.email) {
-        toast.error("User not authenticated");
+        toast.error(t("userNotAuthenticated"));
         return;
       }
 
@@ -54,19 +54,19 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.error || "Failed to change password");
+        toast.error(data.error || t("passwordChangeFailed"));
         setLoading(false);
         return;
       }
 
-      toast.success("Password changed successfully");
+      toast.success(t("passwordChanged"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       onSuccess();
     } catch (error) {
       console.error("Password change error:", error);
-      toast.error("Failed to change password");
+      toast.error(t("passwordChangeError"));
     } finally {
       setLoading(false);
     }
@@ -74,11 +74,11 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
 
   return (
     <div className="p-6 bg-white rounded shadow-md w-full max-w-md mx-auto">
-      <h2 className="text-xl font-semibold mb-6 text-gray-900">Change Password</h2>
+      <h2 className="text-xl font-semibold mb-6 text-gray-900">{t("changePassword")}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Current Password
+            {t("currentPassword")}
           </label>
           <input
             type="password"
@@ -90,7 +90,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            New Password
+            {t("newPassword")}
           </label>
           <input
             type="password"
@@ -102,7 +102,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Confirm New Password
+            {t("confirmNewPassword")}
           </label>
           <input
             type="password"
@@ -117,7 +117,7 @@ export default function ChangePassword({ onSuccess }: ChangePasswordProps) {
           disabled={loading}
           className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "Changing..." : "Change Password"}
+          {loading ? t("changing") : t("changePassword")}
         </button>
       </form>
     </div>

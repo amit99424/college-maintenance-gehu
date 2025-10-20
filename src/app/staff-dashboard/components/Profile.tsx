@@ -178,7 +178,7 @@ export default function Profile({ userData }: ProfileProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{t("role")}</label>
-              <p className="p-3 bg-gray-50 rounded-lg text-gray-800 capitalize">{userData?.role || t("notProvided")}</p>
+              <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{userData?.role ? t(userData.role) : t("notProvided")}</p>
             </div>
 
             {/* Action Buttons */}
