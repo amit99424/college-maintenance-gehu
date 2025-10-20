@@ -63,6 +63,14 @@ export const translations = {
     date: "Date",
     time: "Time",
 
+    // Category options
+    electrical: "Electrical",
+    plumbing: "Plumbing",
+    cleaning: "Cleaning",
+    internet: "Internet",
+    security: "Security",
+    other: "Other",
+
     // Modal
     enterMaintenanceKey: "Enter Admin Key",
     invalidMaintenanceKey: "Invalid Admin Key!",
@@ -117,7 +125,7 @@ export const translations = {
     reopenConfirmMessage: "Are you sure you want to reopen this complaint? This action cannot be undone.",
 
     // Complaint Form
-    submitComplaint: "Submit New Complaint",
+    submitComplaint: "Submit Complaint",
     complaintDescription: "Please provide detailed information about your maintenance request to help us assist you better.",
     complaintTitle: "Complaint Title",
     complaintTitlePlaceholder: "Brief description of the issue...",
@@ -316,7 +324,7 @@ export const translations = {
     reopenConfirmMessage: "क्या आप वाकई इस शिकायत को फिर से खोलना चाहते हैं? यह कार्य पूर्ववत नहीं किया जा सकता।",
 
     // Complaint Form
-    submitComplaint: "नई शिकायत दर्ज करें",
+    submitComplaint: "शिकायत दर्ज करें",
     complaintDescription: "कृपया हमें बेहतर सहायता करने के लिए अपनी रखरखाव अनुरोध के बारे में विस्तृत जानकारी प्रदान करें।",
     complaintTitle: "शिकायत का शीर्षक",
     complaintTitlePlaceholder: "समस्या का संक्षिप्त विवरण...",

@@ -20,22 +20,13 @@ interface RoomData {
 }
 
 // Category icons (replace with your preferred set or SVGs)
-const CATEGORY_OPTIONS = [
-  { value: "Electrical", label: "Electrical", icon: "💡" },
-  { value: "Plumbing", label: "Plumbing", icon: "🚰" },
-  { value: "Cleaning", label: "Cleaning", icon: "🧹" },
-  { value: "Internet", label: "Internet", icon: "🌐" },
-  { value: "Security", label: "Security", icon: "🔒" },
-  { value: "Other", label: "Other", icon: "❓" },
-];
-
-const CATEGORY_OPTIONS_HI = [
-  { value: "Electrical", label: "विद्युत", icon: "💡" },
-  { value: "Plumbing", label: "प्लंबिंग", icon: "🚰" },
-  { value: "Cleaning", label: "सफाई", icon: "🧹" },
-  { value: "Internet", label: "इंटरनेट", icon: "🌐" },
-  { value: "Security", label: "सुरक्षा", icon: "🔒" },
-  { value: "Other", label: "अन्य", icon: "❓" },
+const getCategoryOptions = (t: (key: string) => string) => [
+  { value: "Electrical", label: t("electrical"), icon: "💡" },
+  { value: "Plumbing", label: t("plumbing"), icon: "🚰" },
+  { value: "Cleaning", label: t("cleaning"), icon: "🧹" },
+  { value: "Internet", label: t("internet"), icon: "🌐" },
+  { value: "Security", label: t("security"), icon: "🔒" },
+  { value: "Other", label: t("other"), icon: "❓" },
 ];
 
 // Custom Dropdown component for category selection
@@ -463,7 +454,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
             <ThirdPartyAutocompleteDropdown
               value={formData.category}
               onChange={handleCategoryChange}
-              options={CATEGORY_OPTIONS_HI}
+              options={getCategoryOptions(t)}
               placeholder={t("selectCategory")}
               required
               name="category"

@@ -14,6 +14,7 @@ interface ThirdPartyAutocompleteDropdownProps {
   placeholder: string;
   required?: boolean;
   name?: string;
+  language?: string;
 }
 
 import { CSSObjectWithLabel, GroupBase, OptionProps, SingleValueProps } from "react-select";
@@ -58,6 +59,7 @@ const ThirdPartyAutocompleteDropdown: React.FC<ThirdPartyAutocompleteDropdownPro
   placeholder,
   required = false,
   name,
+  language,
 }) => {
   const selectedOption = options.find((opt) => opt.value === value) || null;
 
@@ -67,6 +69,7 @@ const ThirdPartyAutocompleteDropdown: React.FC<ThirdPartyAutocompleteDropdownPro
 
   return (
     <Select
+      key={language}
       inputId={name}
       value={selectedOption}
       onChange={handleChange}

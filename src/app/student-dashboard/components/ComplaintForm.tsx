@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "@/firebase/config";
+import { useLanguage } from "@/contexts/LanguageContext";
 import EnhancedDropdown from "./EnhancedDropdown";
 import ThirdPartyAutocompleteDropdown from "./ThirdPartyAutocompleteDropdown";
 import SelectDropdown from "./SelectDropdown";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { Calendar } from "lucide-react";
+
 
 interface RoomData {
   "Building Name"?: string;
@@ -19,13 +24,13 @@ interface RoomData {
 }
 
 // Category icons (replace with your preferred set or SVGs)
-const CATEGORY_OPTIONS = [
-  { value: "Electrical", label: "Electrical", icon: "💡" },
-  { value: "Plumbing", label: "Plumbing", icon: "🚰" },
-  { value: "Cleaning", label: "Cleaning", icon: "🧹" },
-  { value: "Internet", label: "Internet", icon: "🌐" },
-  { value: "Security", label: "Security", icon: "🔒" },
-  { value: "Other", label: "Other", icon: "❓" },
+const getCategoryOptions = (t: (key: string) => string) => [
+  { value: "Electrical", label: t("electrical"), icon: "💡" },
+  { value: "Plumbing", label: t("plumbing"), icon: "🚰" },
+  { value: "Cleaning", label: t("cleaning"), icon: "🧹" },
+  { value: "Internet", label: t("internet"), icon: "🌐" },
+  { value: "Security", label: t("security"), icon: "🔒" },
+  { value: "Other", label: t("other"), icon: "❓" },
 ];
 
 // Custom Dropdown component for category selection
@@ -123,15 +128,17 @@ function CustomDropdown({ value, onChange, options, placeholder, required }: Cus
 }
 
 export default function ComplaintForm() {
+  const { t, language } = useLanguage();
   // Import roomStore.json data
   const [roomData, setRoomData] = useState<RoomData[]>([]);
+  const datePickerRef = useRef<any>(null);
   const [formData, setFormData] = useState({
     title: "",
     building: "",
     room: "",
     description: "",
     category: "",
-    preferredDate: "",
+    preferredDate: null as Date | null,
     preferredTime: "",
   });
 
@@ -141,6 +148,9 @@ export default function ComplaintForm() {
   )
     .filter((b) => b !== "")
     .map((b) => ({ value: b, label: b, icon: "🏢" }));
+
+  // Get category options with translation, memoized to update on language change
+  const categoryOptions = useMemo(() => getCategoryOptions(t), [t, language]);
 
   // Filter rooms based on selected building or hostel with trimming
   const isHostel = roomData.some((item) => (item["Hostel"] || "").trim() === formData.building.trim());
@@ -250,7 +260,7 @@ export default function ComplaintForm() {
         room: formData.room,
         description: formData.description,
         category: formData.category,
-        preferredDate: formData.preferredDate,
+        preferredDate: formData.preferredDate ? formData.preferredDate.toISOString().split('T')[0] : null,
         preferredTime: formData.preferredTime,
         userId: user.uid,
         userEmail: user.email,
@@ -296,7 +306,7 @@ export default function ComplaintForm() {
         room: "",
         description: "",
         category: "",
-        preferredDate: "",
+        preferredDate: null,
         preferredTime: "",
       });
       setSelectedFile(null);
@@ -394,55 +404,42 @@ export default function ComplaintForm() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category *
+              {t("category")} *
             </label>
             <ThirdPartyAutocompleteDropdown
               value={formData.category}
               onChange={handleCategoryChange}
-              options={CATEGORY_OPTIONS}
-              placeholder="Select or type a category"
+              options={categoryOptions}
+              placeholder={t("selectCategory")}
               required
               name="category"
+              language={language}
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Date
-              </label>
-              <input
-                type="date"
-                name="preferredDate"
-                value={formData.preferredDate}
-                onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-700 placeholder-opacity-100 text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Preferred Time
+            </label>
+            <SelectDropdown
+              name="preferredTime"
+              value={formData.preferredTime}
+              onChange={(value) =>
+                setFormData((prev) => ({ ...prev, preferredTime: value }))
+              }
+              options={[
+                { value: "09:00-10:00", label: "09:00 AM - 10:00 AM" },
+                { value: "10:00-11:00", label: "10:00 AM - 11:00 AM" },
+                { value: "11:00-12:00", label: "11:00 AM - 12:00 PM" },
+                { value: "12:00-13:00", label: "12:00 PM - 01:00 PM" },
+                { value: "13:00-14:00", label: "01:00 PM - 02:00 PM" },
+                { value: "14:00-15:00", label: "02:00 PM - 03:00 PM" },
+                { value: "15:00-16:00", label: "03:00 PM - 04:00 PM" },
+                { value: "16:00-17:00", label: "04:00 PM - 05:00 PM" },
+                { value: "17:00-18:00", label: "05:00 PM - 06:00 PM" },
+              ]}
+              placeholder="Select a time slot"
+              required={false}
             />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Time
-              </label>
-              <SelectDropdown
-                name="preferredTime"
-                value={formData.preferredTime}
-                onChange={(value) =>
-                  setFormData((prev) => ({ ...prev, preferredTime: value }))
-                }
-                options={[
-                  { value: "09:00-10:00", label: "09:00 AM - 10:00 AM" },
-                  { value: "10:00-11:00", label: "10:00 AM - 11:00 AM" },
-                  { value: "11:00-12:00", label: "11:00 AM - 12:00 PM" },
-                  { value: "12:00-13:00", label: "12:00 PM - 01:00 PM" },
-                  { value: "13:00-14:00", label: "01:00 PM - 02:00 PM" },
-                  { value: "14:00-15:00", label: "02:00 PM - 03:00 PM" },
-                  { value: "15:00-16:00", label: "03:00 PM - 04:00 PM" },
-                  { value: "16:00-17:00", label: "04:00 PM - 05:00 PM" },
-                  { value: "17:00-18:00", label: "05:00 PM - 06:00 PM" },
-                ]}
-                placeholder="Select a time slot"
-                required={false}
-              />
-            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
