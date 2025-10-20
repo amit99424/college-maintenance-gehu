@@ -131,7 +131,7 @@ export default function ComplaintForm() {
   const { t, language } = useLanguage();
   // Import roomStore.json data
   const [roomData, setRoomData] = useState<RoomData[]>([]);
-  const datePickerRef = useRef<any>(null);
+  const datePickerRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     title: "",
     building: "",
