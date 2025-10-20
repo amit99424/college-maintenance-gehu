@@ -123,7 +123,7 @@ export default function DashboardHome({ category, setActiveSection, setStatusFil
       title: t("inProgress"),
       count: statusCounts["in-progress"],
       status: "in progress",
-      color: "bg-yellow-200 border-yellow-400 text-yellow-900 hover:bg-yellow-300",
+      color: "bg-yellow-20 border-yellow-400 text-yellow-900 hover:bg-yellow-300",
       icon: "🔄"
     },
     {

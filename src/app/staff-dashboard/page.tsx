@@ -198,22 +198,22 @@ export default function StaffDashboard() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-2 md:p-8 w-full">
+      <main className="flex-1 md:ml-64 p-2 md:p-4 w-full">
         {/* Header */}
         <div
-          className="fixed top-0 left-0 right-0 z-20 flex items-center justify-between w-full h-21 px-6 md:pl-72 bg-white shadow-md"
+          className="fixed top-0 left-0 right-0 z-20 flex items-center justify-between h-21 px-4 md:px-8 border-b bg-white shadow-md md:pl-72"
         >
           {/* Logo Section */}
-        <div className="flex items-center space-x-3 -ml-10">
-          <img
-            src="/university-logo.png"
-            alt="University Logo"
-            className="h-15 w-auto object-contain"
+          <div className="flex items-center space-x-3 -ml-10">
+            <img
+              src="/university-logo.png"
+              alt="University Logo"
+              className="h-15 w-auto object-contain"
             />
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center space-x-4 pr-4">
+          <div className="flex items-center space-x-4">
             {/* Notification Dropdown */}
             <NotificationDropdown
               notifications={notifications}
@@ -223,7 +223,7 @@ export default function StaffDashboard() {
               onMarkAsRead={handleMarkAsRead}
             />
 
-            {/* Hamburger Menu (for Mobile) */}
+            {/* Hamburger menu button for mobile */}
             <button
               aria-label="Toggle sidebar"
               className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
@@ -231,7 +231,7 @@ export default function StaffDashboard() {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-600"
+                className="h-6 w-6 text-gray-700"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
