@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../firebase/config';
-import { doc, updateDoc, getDoc, addDoc, collection, Timestamp, query, where, getDocs } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, addDoc, collection, Timestamp, query, where, getDocs, DocumentReference } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Create notifications for all admins
     const adminQuery = query(collection(db, 'users'), where('role', '==', 'admin'));
     const adminsSnapshot = await getDocs(adminQuery);
-    const adminNotifications: any[] = [];
+    const adminNotifications: Promise<DocumentReference>[] = [];
     adminsSnapshot.forEach((docSnap) => {
       adminNotifications.push(addDoc(collection(db, 'notifications'), {
         userId: docSnap.id,
