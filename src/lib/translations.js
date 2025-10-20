@@ -64,8 +64,8 @@ export const translations = {
     time: "Time",
 
     // Modal
-    enterMaintenanceKey: "Enter Maintenance Key",
-    invalidMaintenanceKey: "Invalid Maintenance Key!",
+    enterMaintenanceKey: "Enter Admin Key",
+    invalidMaintenanceKey: "Invalid Admin Key!",
 
     // Language
     english: "English",
@@ -84,11 +84,11 @@ export const translations = {
     emailAlreadyRegistered: "Email already registered.",
     required: "are required.",
     enterDOB: "Enter DOB (dd-mm-yyyy)",
-    studentEmailPlaceholder: "Student Email (ending with @gmail.com)",
-    staffEmailPlaceholder: "Staff Email (ending with @staff.com)",
-    supervisorEmailPlaceholder: "Supervisor Email (ending with @sup.com)",
-    maintenanceEmailPlaceholder: "Maintenance Email",
-    maintenance: "Maintenance",
+    studentEmailPlaceholder: "Student Email",
+    staffEmailPlaceholder: "Staff Email",
+    supervisorEmailPlaceholder: "Supervisor Email",
+    maintenanceEmailPlaceholder: "Admin Email",
+    maintenance: "Admin",
 
     // Admin specific
     allComplaints: "All Complaints",
@@ -263,8 +263,8 @@ export const translations = {
     time: "समय",
 
     // Modal
-    enterMaintenanceKey: "रखरखाव कुंजी दर्ज करें",
-    invalidMaintenanceKey: "अमान्य रखरखाव कुंजी!",
+    enterMaintenanceKey: "एडमिन कुंजी दर्ज करें",
+    invalidMaintenanceKey: "अमान्य एडमिन कुंजी!",
 
     // Language
     english: "English",
@@ -283,11 +283,11 @@ export const translations = {
     emailAlreadyRegistered: "ईमेल पहले से पंजीकृत है।",
     required: "आवश्यक हैं।",
     enterDOB: "जन्म तिथि दर्ज करें (dd-mm-yyyy)",
-    studentEmailPlaceholder: "छात्र ईमेल (@gmail.com पर समाप्त)",
-    staffEmailPlaceholder: "स्टाफ ईमेल (@staff.com पर समाप्त)",
-    supervisorEmailPlaceholder: "सुपरवाइजर ईमेल (@sup.com पर समाप्त)",
-    maintenanceEmailPlaceholder: "रखरखाव ईमेल",
-    maintenance: "रखरखाव",
+    studentEmailPlaceholder: "छात्र ईमेल",
+    staffEmailPlaceholder: "स्टाफ ईमेल",
+    supervisorEmailPlaceholder: "सुपरवाइजर ईमेल",
+    maintenanceEmailPlaceholder: "एडमिन ईमेल",
+    maintenance: "एडमिन",
 
     // Admin specific
     allComplaints: "सभी शिकायतें",
