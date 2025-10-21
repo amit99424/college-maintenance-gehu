@@ -361,11 +361,12 @@ export default function ComplaintForm() {
         preferredTime: "",
       });
       setSelectedFile(null);
-      setTimeSlotError(""); // Clear time slot error on success
-    } catch (error) {
-      console.error("Error submitting complaint:", error);
-      setSubmitMessage("Error submitting complaint. Please try again.");
-    } finally {
+    setTimeSlotError(""); // Clear time slot error on success
+  // eslint-disable-next-line prefer-const
+  } catch (error) {
+    console.error("Error submitting complaint:", error);
+    setSubmitMessage("Error submitting complaint. Please try again.");
+  } finally {
       setIsSubmitting(false);
     }
   };
