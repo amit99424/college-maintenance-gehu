@@ -9,7 +9,6 @@ import EnhancedDropdown from "./EnhancedDropdown";
 import ThirdPartyAutocompleteDropdown from "./ThirdPartyAutocompleteDropdown";
 import SelectDropdown from "./SelectDropdown";
 
-
 interface RoomData {
   "Building Name"?: string;
   "Room No."?: string;
@@ -101,21 +100,19 @@ export default function ComplaintForm() {
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
-        const response = await fetch('/ROOMSTORE.JSON');
+        const response = await fetch("/ROOMSTORE.JSON");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data: RoomData[] = await response.json();
         setRoomData(data);
-    } catch {
-      console.error('Error fetching room data');
-      setRoomData([]); // clear room data on error
-    }
+      } catch {
+        console.error("Error fetching room data");
+        setRoomData([]); // clear room data on error
+      }
     };
     fetchRoomData();
   }, []);
-
-
 
   const handleCategoryChange = (value: string) => {
     setFormData((prev) => ({
@@ -124,10 +121,10 @@ export default function ComplaintForm() {
     }));
     validateField("category", value);
   };
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
-  // const [timeSlotError, setTimeSlotError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({
     title: "",
     email: "",
@@ -142,8 +139,7 @@ export default function ComplaintForm() {
   const [modalType, setModalType] = useState<"error" | "success">("error");
 
   const validateField = (name: string, value: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let error = "";
+    const error = ""; // ✅ FIX: use const not let
     setFieldErrors((prev) => ({ ...prev, [name]: error }));
   };
 
@@ -191,7 +187,11 @@ export default function ComplaintForm() {
 
       // Check Firestore for existing complaint with same date and timeSlot
       const { query, where, getDocs } = await import("firebase/firestore");
-      const q = query(collection(db, "complaints"), where("preferredDate", "==", formData.preferredDate), where("preferredTime", "==", formData.preferredTime));
+      const q = query(
+        collection(db, "complaints"),
+        where("preferredDate", "==", formData.preferredDate),
+        where("preferredTime", "==", formData.preferredTime)
+      );
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
         setModalMessage("⚠️ Sorry, this time slot has already been booked. Please select another one.");
@@ -226,8 +226,9 @@ export default function ComplaintForm() {
       });
 
       // Create notifications for all admins
-      const adminQuery = query(collection(db, "users"), where("role", "==", "admin"));
-      const adminsSnapshot = await getDocs(adminQuery);
+      const { query: query2, where: where2, getDocs: getDocs2 } = await import("firebase/firestore");
+      const adminQuery = query2(collection(db, "users"), where2("role", "==", "admin"));
+      const adminsSnapshot = await getDocs2(adminQuery);
       adminsSnapshot.forEach(async (doc) => {
         await addDoc(collection(db, "notifications"), {
           userId: doc.id,
@@ -242,8 +243,8 @@ export default function ComplaintForm() {
       });
 
       // Create notifications for all supervisors
-      const supervisorQuery = query(collection(db, "users"), where("role", "==", "supervisor"));
-      const supervisorsSnapshot = await getDocs(supervisorQuery);
+      const supervisorQuery = query2(collection(db, "users"), where2("role", "==", "supervisor"));
+      const supervisorsSnapshot = await getDocs2(supervisorQuery);
       supervisorsSnapshot.forEach(async (doc) => {
         await addDoc(collection(db, "notifications"), {
           userId: doc.id,
@@ -270,11 +271,10 @@ export default function ComplaintForm() {
         preferredTime: "",
       });
       setSelectedFile(null);
-      // setTimeSlotError(""); // Clear time slot error on success
-  } catch (error) {
-    console.error("Error submitting complaint:", error);
-    setSubmitMessage("Error submitting complaint. Please try again.");
-  } finally {
+    } catch (error) {
+      console.error("Error submitting complaint:", error);
+      setSubmitMessage("Error submitting complaint. Please try again.");
+    } finally {
       setIsSubmitting(false);
     }
   };
