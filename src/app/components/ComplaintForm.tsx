@@ -217,7 +217,10 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
-  const [showSimpleSuccessModal, setShowSimpleSuccessModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"error" | "success">("error");
+  const [validationError, setValidationError] = useState("");
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -237,9 +240,22 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+
+    // Validation: Check if all required fields are filled
+    if (!formData.title.trim() || !formData.building.trim() || !formData.description.trim() || !formData.category.trim()) {
+      setValidationError("Please fill all fields before submitting.");
+      return;
+    }
+
+    // If building is selected, room must also be selected if rooms are available
+    if (formData.building.trim() && roomOptions.length > 0 && !formData.room.trim()) {
+      setValidationError("Please fill all fields before submitting.");
+      return;
+    }
+
+    setValidationError("");
     setIsSubmitting(true);
     setSubmitMessage("");
-    setShowSimpleSuccessModal(false);
 
     try {
       const user = auth.currentUser;
@@ -320,8 +336,9 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         });
       });
 
-      setSubmitMessage(t("complaintSubmitted"));
-      setShowSimpleSuccessModal(true);
+      setModalMessage("✅ Complaint submitted successfully.");
+      setModalType("success");
+      setShowModal(true);
       setFormData({
         title: "",
         building: "",
@@ -349,43 +366,23 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         <p className="mb-6" style={{ color: 'var(--paragraph-text)' }}>
           {t("complaintDescription")}
         </p>
-        {!showSimpleSuccessModal && submitMessage && (
-          <div
-            className={`mb-4 p-3 rounded-lg ${
-              submitMessage.includes("successfully")
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
-            }`}
-          >
-            {submitMessage}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+            <div className="bg-white rounded-xl p-5 shadow-xl w-[350px] text-center" onClick={(e) => e.stopPropagation()}>
+              <h2 className={`font-semibold text-lg mb-2 ${modalType === "success" ? "text-green-600" : "text-red-600"}`}>
+                {modalType === "success" ? "Success" : "Error"}
+              </h2>
+              <p className="text-gray-700 mb-4">{modalMessage}</p>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200"
+              >
+                OK
+              </button>
+            </div>
           </div>
         )}
-``
-{showSimpleSuccessModal && (
-  <div className="fixed inset-0 flex items-center justify-center bg-transparent bg-opacity-50 z-50">
-    <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg relative border-4 border-green-600">
-      <button
-        onClick={() => setShowSimpleSuccessModal(false)}
-        className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
-        aria-label="Close modal"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        </button>
-      <h3 className="text-lg font-bold mb-4 text-green-700 text-center">{t("complaintSubmittedTitle")}</h3>
-      <p className="text-center text-gray-700">{t("complaintSubmittedMessage")}</p>
-      <div className="mt-6 flex justify-center">
-        <button
-          onClick={() => setShowSimpleSuccessModal(false)}
-          className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
-        >
-          {t("close")}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -462,6 +459,9 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
               required
               name="category"
             />
+            {validationError && (
+              <p className="text-red-500 text-sm mt-1">{validationError}</p>
+            )}
           </div>
           {!hidePreferredDateTime && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">

@@ -18,6 +18,7 @@ interface Complaint {
   createdAt: Timestamp | Date | null;
   imageUrl?: string;
   priority?: string;
+  preferredDate?: string;
   preferredTime?: string;
 }
 
@@ -58,6 +59,7 @@ export default function ComplaintsList() {
           createdAt: data.createdAt ?? null,
           imageUrl: data.imageUrl,
           priority: data.priority,
+          preferredDate: data.preferredDate,
           preferredTime: data.preferredTime,
         });
       });
@@ -102,6 +104,32 @@ export default function ComplaintsList() {
         ? timestamp.toDate()
         : new Date(timestamp as string | number);
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+  };
+
+  const formatTimeSlot = (timeSlot: string | undefined) => {
+    if (!timeSlot) return "N/A";
+
+    // If already in 12-hour format, return as is
+    if (timeSlot.includes("AM") || timeSlot.includes("PM")) {
+      return timeSlot;
+    }
+
+    // Convert 24-hour format to 12-hour format
+    const [start, end] = timeSlot.split("-");
+    if (!start || !end) return timeSlot;
+
+    const convertTo12Hour = (time: string) => {
+      const [hours, minutes] = time.split(":");
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? "PM" : "AM";
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
+    };
+
+    const start12 = convertTo12Hour(start.trim());
+    const end12 = convertTo12Hour(end.trim());
+
+    return `${start12} - ${end12}`;
   };
 
   const openDialog = (complaint: Complaint) => {
@@ -350,17 +378,22 @@ export default function ComplaintsList() {
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("category")}</span>
                     <p className="text-gray-900 font-medium">{selectedComplaint.category}</p>
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("priority")}</span>
-                    <p className="text-gray-900 font-medium">{selectedComplaint.priority ?? t("normal")}</p>
-                  </div>
+
                   <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("dateSubmitted")}</span>
                     <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
                   </div>
                   <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("preferredDate")}</span>
+                    <p className="text-gray-900 font-medium">
+                      {selectedComplaint.preferredDate
+                        ? new Date(selectedComplaint.preferredDate).toLocaleDateString('en-GB')
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("timeSlot")}</span>
-                    <p className="text-gray-900 font-medium">{selectedComplaint.preferredTime || "N/A"}</p>
+                    <p className="text-gray-900 font-medium">{formatTimeSlot(selectedComplaint.preferredTime)}</p>
                   </div>
                 </div>
               </div>

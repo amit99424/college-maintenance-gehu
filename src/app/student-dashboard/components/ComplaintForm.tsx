@@ -8,9 +8,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import EnhancedDropdown from "./EnhancedDropdown";
 import ThirdPartyAutocompleteDropdown from "./ThirdPartyAutocompleteDropdown";
 import SelectDropdown from "./SelectDropdown";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { Calendar } from "lucide-react";
 
 
 interface RoomData {
@@ -81,9 +78,8 @@ function CustomDropdown({ value, onChange, options, placeholder, required }: Cus
         onClick={toggleDropdown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`w-full p-3 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-          required && !value ? "border-red-500" : ""
-        }`}
+        className={`w-full p-3 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-transparent ${required && !value ? "border-red-500" : ""
+          }`}
       >
         {selectedOption ? (
           <span className="text-gray-700">
@@ -109,9 +105,8 @@ function CustomDropdown({ value, onChange, options, placeholder, required }: Cus
               role="option"
               aria-selected={value === option.value}
               onClick={() => handleOptionClick(option.value)}
-              className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-600 hover:text-white ${
-                value === option.value ? "font-semibold bg-blue-600 text-white" : "text-gray-900"
-              }`}
+              className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-600 hover:text-white ${value === option.value ? "font-semibold bg-blue-600 text-white" : "text-gray-900"
+                }`}
             >
               <span className="flex items-center">
                 <span className="mr-2">{option.icon}</span>
@@ -138,7 +133,7 @@ export default function ComplaintForm() {
     room: "",
     description: "",
     category: "",
-    preferredDate: null as Date | null,
+    preferredDate: "",
     preferredTime: "",
   });
 
@@ -184,6 +179,7 @@ export default function ComplaintForm() {
       building: value,
       room: "", // reset room when building changes
     }));
+    validateField("building", value);
   };
 
   const handleRoomChange = (value: string) => {
@@ -211,15 +207,36 @@ export default function ComplaintForm() {
     fetchRoomData();
   }, []);
 
+
+
   const handleCategoryChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
       category: value,
     }));
+    validateField("category", value);
   };
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [timeSlotError, setTimeSlotError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({
+    title: "",
+    email: "",
+    building: "",
+    category: "",
+    preferredDate: "",
+    preferredTime: "",
+    description: "",
+  });
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"error" | "success">("error");
+
+  const validateField = (name: string, value: string) => {
+    let error = "";
+    setFieldErrors((prev) => ({ ...prev, [name]: error }));
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -229,6 +246,7 @@ export default function ComplaintForm() {
       ...prev,
       [name]: value,
     }));
+    validateField(name, value);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -246,6 +264,34 @@ export default function ComplaintForm() {
       const user = auth.currentUser;
       if (!user) throw new Error("User not authenticated");
 
+      // Validate all required fields
+      const errors: any = {};
+      if (!formData.title) errors.title = "Please fill all fields before submitting.";
+      if (!user.email) errors.email = "Please fill all fields before submitting.";
+      if (!formData.building) errors.building = "Please fill all fields before submitting.";
+      if (!formData.category) errors.category = "Please fill all fields before submitting.";
+      if (!formData.preferredDate) errors.preferredDate = "Please fill all fields before submitting.";
+      if (!formData.preferredTime) errors.preferredTime = "Please fill all fields before submitting.";
+      if (!formData.description) errors.description = "Please fill all fields before submitting.";
+
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check Firestore for existing complaint with same date and timeSlot
+      const { query, where, getDocs } = await import("firebase/firestore");
+      const q = query(collection(db, "complaints"), where("preferredDate", "==", formData.preferredDate), where("preferredTime", "==", formData.preferredTime));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setModalMessage("⚠️ Sorry, this time slot has already been booked. Please select another one.");
+        setModalType("error");
+        setShowModal(true);
+        setIsSubmitting(false);
+        return;
+      }
+
       let imageUrl = "";
       if (selectedFile) {
         const imageRef = ref(storage, `complaints/${user.uid}/${Date.now()}_${selectedFile.name}`);
@@ -260,7 +306,7 @@ export default function ComplaintForm() {
         room: formData.room,
         description: formData.description,
         category: formData.category,
-        preferredDate: formData.preferredDate ? formData.preferredDate.toISOString().split('T')[0] : null,
+        preferredDate: formData.preferredDate,
         preferredTime: formData.preferredTime,
         userId: user.uid,
         userEmail: user.email,
@@ -271,7 +317,6 @@ export default function ComplaintForm() {
       });
 
       // Create notifications for all admins
-      const { query, where, getDocs } = await import("firebase/firestore");
       const adminQuery = query(collection(db, "users"), where("role", "==", "admin"));
       const adminsSnapshot = await getDocs(adminQuery);
       adminsSnapshot.forEach(async (doc) => {
@@ -303,19 +348,20 @@ export default function ComplaintForm() {
         });
       });
 
-      setSubmitMessage("Complaint submitted successfully!");
+      setModalMessage("✅ Complaint submitted successfully.");
+      setModalType("success");
+      setShowModal(true);
       setFormData({
         title: "",
         building: "",
         room: "",
         description: "",
         category: "",
-        preferredDate: null,
+        preferredDate: "",
         preferredTime: "",
       });
       setSelectedFile(null);
-
-      setTimeout(() => setSubmitMessage(""), 3000);
+      setTimeSlotError(""); // Clear time slot error on success
     } catch (error) {
       console.error("Error submitting complaint:", error);
       setSubmitMessage("Error submitting complaint. Please try again.");
@@ -327,17 +373,33 @@ export default function ComplaintForm() {
   return (
     <div className="max-w-full md:max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
       <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Submit New Complaint</h2>
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">{t("submitComplaint")}</h2>
         <p className="text-gray-600 mb-6">
-          Please provide detailed information about your maintenance request to help us assist you better.
+          {t("complaintDescription")}
         </p>
+        {showModal && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+            <div className="bg-white rounded-xl p-5 shadow-xl w-[350px] text-center" onClick={(e) => e.stopPropagation()}>
+              <h2 className={`font-semibold text-lg mb-2 ${modalType === "success" ? "text-green-600" : "text-red-600"}`}>
+                {modalType === "success" ? "Success" : "Error"}
+              </h2>
+              <p className="text-gray-700 mb-4">{modalMessage}</p>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
         {submitMessage && (
           <div
-            className={`mb-4 p-3 rounded-lg ${
-              submitMessage.includes("successfully")
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
-            }`}
+            className={`mb-4 p-3 rounded-lg ${submitMessage.includes("successfully")
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+              }`}
           >
             {submitMessage}
           </div>
@@ -345,66 +407,72 @@ export default function ComplaintForm() {
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Complaint Title *
+              {t("complaintTitle")} *
             </label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleInputChange}
-              placeholder="Brief description of the issue..."
+              placeholder={t("complaintTitlePlaceholder")}
               required
               className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+            />
+            {fieldErrors.title && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.title}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Building *
+              {t("building")} *
             </label>
             <EnhancedDropdown
               value={formData.building}
               onChange={handleBuildingChange}
               options={buildingOptions}
-              placeholder="Select or type a building"
+              placeholder={t("selectBuilding")}
               required
               name="building"
             />
+            {fieldErrors.building && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.building}</p>
+            )}
           </div>
           {formData.building && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Room *
+                {t("room")} *
               </label>
               {roomOptions.length > 0 ? (
                 <EnhancedDropdown
                   value={formData.room}
                   onChange={handleRoomChange}
                   options={roomOptions}
-                  placeholder="Select or type a room"
+                  placeholder={t("selectRoom")}
                   required
                   name="room"
                 />
               ) : (
-                <p className="text-gray-500 text-sm italic">No rooms available for the selected building.</p>
+                <p className="text-gray-500 text-sm italic">{t("noRoomsAvailable")}</p>
               )}
             </div>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Detailed Description *
+              {t("detailedDescription")} *
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="Please provide a detailed description of the problem.."
+              placeholder={t("descriptionPlaceholder")}
               rows={4}
               required
               className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <span className="text-xs text-gray-500 mt-1 block">
-              The more details you provide, the faster we can resolve your issue.
-            </span>
+            {fieldErrors.description && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.description}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -419,35 +487,82 @@ export default function ComplaintForm() {
               name="category"
               language={language}
             />
+            {fieldErrors.category && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.category}</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("preferredDate")}
+              </label>
+              <div className="relative">
+                <input
+                  ref={datePickerRef}
+                  type="date"
+                  name="preferredDate"
+                  value={formData.preferredDate}
+                  onChange={handleInputChange}
+                  onKeyDown={(e) => e.preventDefault()}
+                  className="w-full p-3 pr-10 border border-gray-300 rounded-lg placeholder-gray-700 placeholder-opacity-100 text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+                />
+                <div
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+                  onClick={() => datePickerRef.current?.showPicker?.() || datePickerRef.current?.focus()}
+                >
+                  <svg
+                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              {fieldErrors.preferredDate && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.preferredDate}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("preferredTime")}
+              </label>
+              <SelectDropdown
+                name="preferredTime"
+                value={formData.preferredTime}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, preferredTime: value }))
+                }
+                options={[
+                  { value: "09:00 AM - 10:00 AM", label: "09:00 AM - 10:00 AM" },
+                  { value: "10:00 AM - 11:00 AM", label: "10:00 AM - 11:00 AM" },
+                  { value: "11:00 AM - 12:00 PM", label: "11:00 AM - 12:00 PM" },
+                  { value: "12:00 PM - 01:00 PM", label: "12:00 PM - 01:00 PM" },
+                  { value: "01:00 PM - 02:00 PM", label: "01:00 PM - 02:00 PM" },
+                  { value: "02:00 PM - 03:00 PM", label: "02:00 PM - 03:00 PM" },
+                  { value: "03:00 PM - 04:00 PM", label: "03:00 PM - 04:00 PM" },
+                  { value: "04:00 PM - 05:00 PM", label: "04:00 PM - 05:00 PM" },
+                  { value: "05:00 PM - 06:00 PM", label: "05:00 PM - 06:00 PM" },
+                ]}
+                placeholder={t("selectTimeSlot")}
+                required={false}
+              />
+              {fieldErrors.preferredTime && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.preferredTime}</p>
+              )}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Preferred Time
-            </label>
-            <SelectDropdown
-              name="preferredTime"
-              value={formData.preferredTime}
-              onChange={(value) =>
-                setFormData((prev) => ({ ...prev, preferredTime: value }))
-              }
-              options={[
-                { value: "09:00-10:00", label: "09:00 AM - 10:00 AM" },
-                { value: "10:00-11:00", label: "10:00 AM - 11:00 AM" },
-                { value: "11:00-12:00", label: "11:00 AM - 12:00 PM" },
-                { value: "12:00-13:00", label: "12:00 PM - 01:00 PM" },
-                { value: "13:00-14:00", label: "01:00 PM - 02:00 PM" },
-                { value: "14:00-15:00", label: "02:00 PM - 03:00 PM" },
-                { value: "15:00-16:00", label: "03:00 PM - 04:00 PM" },
-                { value: "16:00-17:00", label: "04:00 PM - 05:00 PM" },
-                { value: "17:00-18:00", label: "05:00 PM - 06:00 PM" },
-              ]}
-              placeholder="Select a time slot"
-              required={false}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Upload Image (Optional)
+              {t("uploadImage")}
             </label>
             <input
               type="file"
@@ -457,7 +572,7 @@ export default function ComplaintForm() {
             />
             {selectedFile && (
               <p className="mt-2 text-sm text-gray-600">
-                Selected: {selectedFile.name}
+                {t("selectedFile")}: {selectedFile.name}
               </p>
             )}
           </div>
@@ -465,13 +580,12 @@ export default function ComplaintForm() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${
-                isSubmitting
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}
+              className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${isSubmitting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+                }`}
             >
-              {isSubmitting ? "Submitting..." : "Submit Complaint"}
+              {isSubmitting ? t("submitting") : t("submit")}
             </button>
           </div>
         </form>

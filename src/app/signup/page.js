@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
 import { doc, setDoc } from "firebase/firestore";
 import bcrypt from "bcryptjs";
 import Image from "next/image";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function SignupPage() {
@@ -18,7 +20,7 @@ export default function SignupPage() {
   const [category, setCategory] = useState("");
   // Removed collegeId state as per request
   const [department, setDepartment] = useState("");
-  const [dob, setDob] = useState("");
+  const [dob, setDob] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -90,7 +92,7 @@ export default function SignupPage() {
         role,
         name: name.trim(),
         createdAt: new Date().toISOString(),
-        dob,
+        dob: dob ? dob.toISOString().split('T')[0] : null,
         password: hashedPassword,
       };
 
@@ -199,6 +201,19 @@ export default function SignupPage() {
 
             {/* DOB */}
             <div className="relative w-full">
+              <DatePicker
+                selected={dob}
+                onChange={(date) => setDob(date)}
+                dateFormat="yyyy-MM-dd"
+                placeholderText={t("enterDOB")}
+                required
+                className="w-full pl-10 p-3 text-sm sm:text-base rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:shadow-lg focus:shadow-blue-400/50 bg-white/90 text-gray-900 shadow-md transition-all duration-300"
+                wrapperClassName="w-full"
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
+                maxDate={new Date()}
+              />
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <svg
                   className="w-5 h-5 text-gray-400"
@@ -215,15 +230,6 @@ export default function SignupPage() {
                   />
                 </svg>
               </span>
-              <input
-                id="dob"
-                type="text"
-                placeholder={t("enterDOB")}
-                value={dob}
-                onChange={(e) => setDob(e.target.value)}
-                required
-                className="w-full pl-10 p-3 text-sm sm:text-base rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:shadow-lg focus:shadow-blue-400/50 bg-white/90 text-gray-900 shadow-md transition-all duration-300"
-              />
             </div>
 
             {/* Role */}

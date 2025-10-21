@@ -351,16 +351,8 @@ export default function ComplaintsList() {
                     <p className="text-gray-900 font-medium">{selectedComplaint.category}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("priority")}</span>
-                    <p className="text-gray-900 font-medium">{selectedComplaint.priority ?? t("normal")}</p>
-                  </div>
-                  <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("dateSubmitted")}</span>
                     <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("timeSlot")}</span>
-                    <p className="text-gray-900 font-medium">{selectedComplaint.preferredTime || "N/A"}</p>
                   </div>
                 </div>
               </div>

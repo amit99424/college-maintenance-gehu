@@ -6,7 +6,7 @@ import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth, db } from "@/firebase/config";
 import { collection, query, where, orderBy, onSnapshot, updateDoc, doc, DocumentData, Timestamp } from "firebase/firestore";
 import Sidebar from "./components/Sidebar";
-import ComplaintForm from "@/app/components/ComplaintForm";
+import ComplaintForm from "./components/ComplaintForm";
 import ComplaintsList from "./components/ComplaintsList";
 import ReopenComplaint from "./components/ReopenComplaint";
 import Profile from "./components/Profile";
@@ -130,7 +130,7 @@ export default function StudentDashboard() {
   const renderActiveSection = () => {
     switch (activeSection) {
       case "submit-complaint":
-        return <ComplaintForm userRole={userData?.role} />;
+        return <ComplaintForm />;
       case "my-complaints":
         return <ComplaintsList />;
       case "notifications":
@@ -146,7 +146,7 @@ export default function StudentDashboard() {
       case "change-password":
         return <ChangePassword onSuccess={() => setActiveSection("profile")} />;
       default:
-        return <ComplaintForm userRole={userData?.role} />;
+        return <ComplaintForm />;
     }
   };
 
