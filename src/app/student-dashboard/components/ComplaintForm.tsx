@@ -199,8 +199,8 @@ export default function ComplaintForm() {
         }
         const data: RoomData[] = await response.json();
         setRoomData(data);
-    } catch (error: unknown) {
-      console.error('Error fetching room data:', error);
+    } catch {
+      console.error('Error fetching room data');
       setRoomData([]); // clear room data on error
     }
     };
