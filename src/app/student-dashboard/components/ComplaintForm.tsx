@@ -30,98 +30,6 @@ const getCategoryOptions = (t: (key: string) => string) => [
   { value: "Other", label: t("other"), icon: "❓" },
 ];
 
-// Custom Dropdown component for category selection
-interface CategoryOption {
-  value: string;
-  label: string;
-  icon: string;
-}
-
-interface CustomDropdownProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: CategoryOption[];
-  placeholder: string;
-  required?: boolean;
-}
-
-function CustomDropdown({ value, onChange, options, placeholder, required }: CustomDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const selectedOption = options.find((opt: CategoryOption) => opt.value === value);
-
-  const toggleDropdown = () => setIsOpen((prev) => !prev);
-
-  const handleOptionClick = (val: string) => {
-    onChange(val);
-    setIsOpen(false);
-  };
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={toggleDropdown}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        className={`w-full p-3 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-transparent ${required && !value ? "border-red-500" : ""
-          }`}
-      >
-        {selectedOption ? (
-          <span className="text-gray-700">
-            <span className="mr-2">{selectedOption.icon}</span>
-            {selectedOption.label}
-          </span>
-        ) : (
-          <span className="text-gray-400">{placeholder}</span>
-        )}
-      </button>
-      {isOpen && (
-        <ul
-          tabIndex={-1}
-          role="listbox"
-          aria-activedescendant={value}
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-gray-300"
-          style={{ boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}
-        >
-          {options.map((option) => (
-            <li
-              key={option.value}
-              id={option.value}
-              role="option"
-              aria-selected={value === option.value}
-              onClick={() => handleOptionClick(option.value)}
-              className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-600 hover:text-white ${value === option.value ? "font-semibold bg-blue-600 text-white" : "text-gray-900"
-                }`}
-            >
-              <span className="flex items-center">
-                <span className="mr-2">{option.icon}</span>
-                {option.label}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {/* Hidden input for form validation */}
-      <input type="hidden" name="category" value={value} required={required} />
-    </div>
-  );
-}
-
 export default function ComplaintForm() {
   const { t, language } = useLanguage();
   // Import roomStore.json data
@@ -145,7 +53,7 @@ export default function ComplaintForm() {
     .map((b) => ({ value: b, label: b, icon: "🏢" }));
 
   // Get category options with translation, memoized to update on language change
-  const categoryOptions = useMemo(() => getCategoryOptions(t), [t, language]);
+  const categoryOptions = useMemo(() => getCategoryOptions(t), [t]);
 
   // Filter rooms based on selected building or hostel with trimming
   const isHostel = roomData.some((item) => (item["Hostel"] || "").trim() === formData.building.trim());
@@ -219,7 +127,7 @@ export default function ComplaintForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
-  const [timeSlotError, setTimeSlotError] = useState("");
+  // const [timeSlotError, setTimeSlotError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({
     title: "",
     email: "",
@@ -234,6 +142,7 @@ export default function ComplaintForm() {
   const [modalType, setModalType] = useState<"error" | "success">("error");
 
   const validateField = (name: string, value: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let error = "";
     setFieldErrors((prev) => ({ ...prev, [name]: error }));
   };
@@ -361,8 +270,7 @@ export default function ComplaintForm() {
         preferredTime: "",
       });
       setSelectedFile(null);
-    setTimeSlotError(""); // Clear time slot error on success
-  // eslint-disable-next-line prefer-const
+      // setTimeSlotError(""); // Clear time slot error on success
   } catch (error) {
     console.error("Error submitting complaint:", error);
     setSubmitMessage("Error submitting complaint. Please try again.");
