@@ -199,10 +199,10 @@ export default function ComplaintForm() {
         }
         const data: RoomData[] = await response.json();
         setRoomData(data);
-      } catch (error) {
-        console.error('Error fetching room data:', error);
-        setRoomData([]); // clear room data on error
-      }
+    } catch (error: unknown) {
+      console.error('Error fetching room data:', error);
+      setRoomData([]); // clear room data on error
+    }
     };
     fetchRoomData();
   }, []);
@@ -265,7 +265,7 @@ export default function ComplaintForm() {
       if (!user) throw new Error("User not authenticated");
 
       // Validate all required fields
-      const errors: any = {};
+      const errors: Partial<typeof fieldErrors> = {};
       if (!formData.title) errors.title = "Please fill all fields before submitting.";
       if (!user.email) errors.email = "Please fill all fields before submitting.";
       if (!formData.building) errors.building = "Please fill all fields before submitting.";
@@ -275,7 +275,7 @@ export default function ComplaintForm() {
       if (!formData.description) errors.description = "Please fill all fields before submitting.";
 
       if (Object.keys(errors).length > 0) {
-        setFieldErrors(errors);
+        setFieldErrors((prev) => ({ ...prev, ...errors }));
         setIsSubmitting(false);
         return;
       }
