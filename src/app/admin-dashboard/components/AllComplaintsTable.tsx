@@ -40,6 +40,7 @@ interface Complaint {
   lastUpdatedByRole?: string;
   supervisorName?: string;
   preferredTime?: string;
+  preferredDate?: string;
   [key: string]: unknown;
 }
 
@@ -259,6 +260,13 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
     return date.toLocaleDateString();
   };
 
+  // Format preferred date string
+  const formatPreferredDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
   if (loading) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -285,6 +293,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
       'Category': complaint.category,
       'Status': complaint.status,
       'Date Submitted': formatDate(complaint.createdAt),
+      'Preferred Date': complaint.preferredDate || 'N/A',
       'Time Slot': complaint.preferredTime || 'N/A',
       'Submitted By (Name)': getUserTypeFromEmail(complaint.userEmail),
       'Submitted By (Email)': complaint.userEmail,
@@ -590,6 +599,10 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
                   <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Date Submitted")}</span>
                     <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Preferred Date")}</span>
+                    <p className="text-gray-900 font-medium">{formatPreferredDate(selectedComplaint.preferredDate)}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Time Slot")}</span>

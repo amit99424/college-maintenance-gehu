@@ -44,6 +44,7 @@ interface Complaint {
   updatedAt?: Timestamp | Date;
   category: string;
   preferredTime?: string;
+  preferredDate?: string;
   [key: string]: unknown;
 }
 
@@ -208,9 +209,28 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
     setSelectedComplaint(null);
   };
 
+  // Normalize status to standard values
+  const normalizeStatus = (status: string): string => {
+    const normalized = status.trim().toLowerCase().replace(/\s+/g, ' ');
+    switch (normalized) {
+      case 'pending':
+        return 'Pending';
+      case 'in progress':
+      case 'in-progress':
+        return 'In Progress';
+      case 'completed':
+      case 'resolved':
+        return 'Completed';
+      case 'reopened':
+        return 'Reopened';
+      default:
+        return status;
+    }
+  };
+
   // Get color classes for status badges
   const getStatusColor = (status: string) => {
-    const normalizedStatus = status.trim().toLowerCase();
+    const normalizedStatus = normalizeStatus(status).toLowerCase();
     switch (normalizedStatus) {
       case "pending":
         return "bg-red-200 text-red-900";
@@ -229,6 +249,13 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
   const formatDate = (timestamp: Timestamp | Date | undefined) => {
     if (!timestamp) return "N/A";
     const date = timestamp instanceof Timestamp ? timestamp.toDate() : timestamp;
+    return date.toLocaleDateString();
+  };
+
+  // Format preferred date string
+  const formatPreferredDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
     return date.toLocaleDateString();
   };
 
@@ -258,6 +285,7 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
       'Category': complaint.category,
       'Status': complaint.status,
       'Date Submitted': formatDate(complaint.createdAt),
+      'Preferred Date': complaint.preferredDate || 'N/A',
       'Time Slot': complaint.preferredTime || 'N/A',
       'Submitted By (Name)': getUserTypeFromEmail(complaint.userEmail),
       'Submitted By (Email)': complaint.userEmail,
@@ -530,6 +558,10 @@ export default function ComplaintsTable({ category, userData, initialStatusFilte
                   <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("dateSubmitted")}</span>
                     <p className="text-gray-900 font-medium">{formatDate(selectedComplaint.createdAt)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("preferredDate")}</span>
+                    <p className="text-gray-900 font-medium">{formatPreferredDate(selectedComplaint.preferredDate)}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("timeSlot")}</span>

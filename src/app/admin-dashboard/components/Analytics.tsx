@@ -72,9 +72,28 @@ export default function Analytics({ }: AnalyticsProps) {
     setSupervisors(uniqueSupervisors);
   }, [complaints]);
 
+  // Normalize status to standard values
+  const normalizeStatus = (status: string): string => {
+    const normalized = status.trim().toLowerCase().replace(/\s+/g, ' ');
+    switch (normalized) {
+      case 'pending':
+        return 'Pending';
+      case 'in progress':
+      case 'in-progress':
+        return 'In Progress';
+      case 'completed':
+      case 'resolved':
+        return 'Completed';
+      case 'reopened':
+        return 'Reopened';
+      default:
+        return status;
+    }
+  };
+
   // Data for Bar Chart: Complaints by Status
   const statusCounts = complaints.reduce((acc, complaint) => {
-    const status = complaint.status || "Unknown";
+    const status = normalizeStatus(complaint.status || "Unknown");
     acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);

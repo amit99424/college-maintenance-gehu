@@ -56,7 +56,7 @@ export default function Analytics({ category }: AnalyticsProps) {
     return acc;
   }, {} as Record<string, number>);
 
-  const barData = Object.entries(statusCounts).map(([status, count]) => ({
+  const barData = Object.entries(statusCounts).filter(([status]) => status.toLowerCase() !== "in-progress").map(([status, count]) => ({
     status,
     count
   }));
