@@ -1,20 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, orderBy, onSnapshot, DocumentData, Timestamp, updateDoc, doc } from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot, DocumentData, Timestamp, updateDoc, doc, deleteDoc } from "firebase/firestore";
 import { db, auth } from "@/firebase/config";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
 
 interface Notification {
   id: string;
-  userId: string;
   complaintId: string;
-  complaintTitle: string;
   message: string;
-  read: boolean;
-  createdAt: Timestamp | Date | null;
-  updatedBy: string;
+  roles: string[];
+  category: string;
+  targetUid: string;
+  seen: boolean;
+  timestamp: Timestamp | Date | null;
 }
 
 export default function Notifications() {
@@ -25,30 +25,30 @@ export default function Notifications() {
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
   useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const storedUserData = localStorage.getItem("userData");
+    if (!storedUserData) return;
+    const userData = JSON.parse(storedUserData);
 
-    const q = query(
-      collection(db, "notifications"),
-      where("userId", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
+    // Admin sees all notifications
+    const q = query(collection(db, "notifications"), orderBy("timestamp", "desc"));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const notificationsData: Notification[] = [];
+      const notificationsMap = new Map<string, Notification>();
       querySnapshot.forEach((doc) => {
         const data = doc.data() as DocumentData;
-        notificationsData.push({
+        const notification: Notification = {
           id: doc.id,
-          userId: data.userId,
           complaintId: data.complaintId,
-          complaintTitle: data.complaintTitle,
           message: data.message,
-          read: data.read,
-          createdAt: data.createdAt ?? null,
-          updatedBy: data.updatedBy,
-        });
+          roles: data.roles || [],
+          category: data.category,
+          targetUid: data.targetUid,
+          seen: data.seen ?? false,
+          timestamp: data.timestamp ?? null,
+        };
+        notificationsMap.set(doc.id, notification);
       });
+      const notificationsData = Array.from(notificationsMap.values());
       setNotifications(notificationsData);
       setLoading(false);
     });
@@ -56,7 +56,7 @@ export default function Notifications() {
     return () => unsubscribe();
   }, []);
 
-  const formatDate = (timestamp: Notification["createdAt"]) => {
+  const formatDate = (timestamp: Notification["timestamp"]) => {
     if (!timestamp) return "N/A";
     const date =
       timestamp instanceof Date
@@ -71,8 +71,8 @@ export default function Notifications() {
     setSelectedNotification(notification);
     setIsDialogOpen(true);
 
-    // Mark as read when opened
-    if (!notification.read) {
+    // Mark as seen when opened
+    if (!notification.seen) {
       markAsRead(notification.id);
     }
   };
@@ -85,22 +85,31 @@ export default function Notifications() {
   const markAsRead = async (id: string) => {
     try {
       await updateDoc(doc(db, "notifications", id), {
-        read: true
+        seen: true
       });
     } catch (error) {
-      console.error("Failed to mark notification as read:", error);
+      console.error("Failed to mark notification as seen:", error);
+    }
+  };
+
+  const deleteNotification = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this notification?")) return;
+    try {
+      await deleteDoc(doc(db, "notifications", id));
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
     }
   };
 
   const markAllAsRead = async () => {
     try {
-      const unreadNotifications = notifications.filter(n => !n.read);
+      const unreadNotifications = notifications.filter(n => !n.seen);
       const promises = unreadNotifications.map(notification =>
-        updateDoc(doc(db, "notifications", notification.id), { read: true })
+        updateDoc(doc(db, "notifications", notification.id), { seen: true })
       );
       await Promise.all(promises);
     } catch (error) {
-      console.error("Failed to mark all notifications as read:", error);
+      console.error("Failed to mark all notifications as seen:", error);
     }
   };
 
@@ -121,12 +130,12 @@ export default function Notifications() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
             <h2 className="text-xl font-semibold text-gray-800">Notifications</h2>
 
-            {notifications.some(n => !n.read) && (
+            {notifications.some(n => !n.seen) && (
               <button
                 onClick={markAllAsRead}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >
-                Mark all as read
+                Mark all as seen
               </button>
             )}
           </div>
@@ -141,16 +150,16 @@ export default function Notifications() {
                 <div
                   key={notification.id}
                   className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow cursor-pointer ${
-                    notification.read ? "border-gray-200 bg-white" : "border-blue-300 bg-blue-50"
+                    notification.seen ? "border-gray-200 bg-white" : "border-blue-300 bg-blue-50"
                   }`}
                   onClick={() => openDialog(notification)}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold text-gray-800">
-                      {notification.complaintTitle}
+                      Complaint ID: {notification.complaintId}
                     </h3>
                     <div className="flex items-center space-x-2">
-                      {!notification.read && (
+                      {!notification.seen && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -158,10 +167,19 @@ export default function Notifications() {
                           }}
                           className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
                         >
-                          Mark as read
+                          Mark as seen
                         </button>
                       )}
-                      {!notification.read && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteNotification(notification.id);
+                        }}
+                        className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                      >
+                        Delete
+                      </button>
+                      {!notification.seen && (
                         <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
                           New
                         </span>
@@ -172,7 +190,7 @@ export default function Notifications() {
                     {notification.message}
                   </p>
                   <div className="text-sm text-gray-500">
-                    <span>Updated: {formatDate(notification.createdAt)}</span>
+                    <span>Updated: {formatDate(notification.timestamp)}</span>
                   </div>
                 </div>
               ))}
@@ -192,16 +210,13 @@ export default function Notifications() {
           {selectedNotification && (
             <div className="space-y-3 text-gray-800">
               <p className="font-semibold text-lg">
-                {selectedNotification.complaintTitle}
+                Complaint ID: {selectedNotification.complaintId}
               </p>
               <p>
                 {selectedNotification.message}
               </p>
               <p className="text-sm text-gray-500">
-                Updated by: {selectedNotification.updatedBy}
-              </p>
-              <p className="text-sm text-gray-500">
-                Time: {formatDate(selectedNotification.createdAt)}
+                Time: {formatDate(selectedNotification.timestamp)}
               </p>
             </div>
           )}

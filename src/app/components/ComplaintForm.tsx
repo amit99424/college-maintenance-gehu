@@ -77,9 +77,8 @@ function CustomDropdown({ value, onChange, options, placeholder, required }: Cus
         onClick={toggleDropdown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`w-full p-3 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-          required && !value ? "border-red-500" : ""
-        }`}
+        className={`w-full p-3 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-transparent ${required && !value ? "border-red-500" : ""
+          }`}
       >
         {selectedOption ? (
           <span className="text-gray-700">
@@ -105,9 +104,8 @@ function CustomDropdown({ value, onChange, options, placeholder, required }: Cus
               role="option"
               aria-selected={value === option.value}
               onClick={() => handleOptionClick(option.value)}
-              className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-600 hover:text-white ${
-                value === option.value ? "font-semibold bg-blue-600 text-white" : "text-gray-900"
-              }`}
+              className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-600 hover:text-white ${value === option.value ? "font-semibold bg-blue-600 text-white" : "text-gray-900"
+                }`}
             >
               <span className="flex items-center">
                 <span className="mr-2">{option.icon}</span>
@@ -287,54 +285,38 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
         updatedAt: serverTimestamp(),
       });
 
-      // Create notifications for all admins (including maintenance role)
+      // Create notifications for all admins
       const { query, where, getDocs } = await import("firebase/firestore");
       const adminQuery = query(collection(db, "users"), where("role", "==", "admin"));
       const adminsSnapshot = await getDocs(adminQuery);
-      adminsSnapshot.forEach(async (doc) => {
+      const adminPromises = adminsSnapshot.docs.map(async (doc) => {
         await addDoc(collection(db, "notifications"), {
-          userId: doc.id,
-          message: `New complaint submitted: "${formData.title}" (${formData.category})`,
           complaintId: complaintRef.id,
-          complaintTitle: formData.title,
+          message: `New complaint submitted: "${formData.title}" (${formData.category})`,
+          roles: ["admin"],
           category: formData.category,
-          createdAt: serverTimestamp(),
-          read: false,
-          updatedBy: submittedBy,
+          targetUid: doc.id,
+          seen: false,
+          timestamp: serverTimestamp(),
         });
       });
+      await Promise.all(adminPromises);
 
-      // Create notifications for all supervisors
-      const supervisorQuery = query(collection(db, "users"), where("role", "==", "supervisor"));
+      // Create notifications for supervisors matching the complaint category
+      const supervisorQuery = query(collection(db, "users"), where("role", "==", "supervisor"), where("department", "==", formData.category));
       const supervisorsSnapshot = await getDocs(supervisorQuery);
-      supervisorsSnapshot.forEach(async (doc) => {
+      const supervisorPromises = supervisorsSnapshot.docs.map(async (doc) => {
         await addDoc(collection(db, "notifications"), {
-          userId: doc.id,
-          message: `New complaint submitted: "${formData.title}" (${formData.category})`,
           complaintId: complaintRef.id,
-          complaintTitle: formData.title,
+          message: `New complaint in your department: "${formData.title}" (${formData.category})`,
+          roles: ["supervisor"],
           category: formData.category,
-          createdAt: serverTimestamp(),
-          read: false,
-          updatedBy: submittedBy,
+          targetUid: doc.id,
+          seen: false,
+          timestamp: serverTimestamp(),
         });
       });
-
-      // Create notifications for all staff
-      const staffQuery = query(collection(db, "users"), where("role", "==", "staff"));
-      const staffSnapshot = await getDocs(staffQuery);
-      staffSnapshot.forEach(async (doc) => {
-        await addDoc(collection(db, "notifications"), {
-          userId: doc.id,
-          message: `New complaint submitted: "${formData.title}" (${formData.category})`,
-          complaintId: complaintRef.id,
-          complaintTitle: formData.title,
-          category: formData.category,
-          createdAt: serverTimestamp(),
-          read: false,
-          updatedBy: submittedBy,
-        });
-      });
+      await Promise.all(supervisorPromises);
 
       setModalMessage("✅ Complaint submitted successfully.");
       setModalType("success");
@@ -396,7 +378,7 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
               placeholder={t("complaintTitlePlaceholder")}
               required
               className="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 placeholder-opacity-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -524,11 +506,10 @@ export default function ComplaintForm({ hidePreferredDateTime, userRole }: Compl
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-3 px-6 rounded-md font-semibold transition-colors ${
-                isSubmitting
+              className={`w-full py-3 px-6 rounded-md font-semibold transition-colors ${isSubmitting
                   ? "bg-gray-400 cursor-not-allowed"
                   : "classic-btn"
-              }`}
+                }`}
             >
               {isSubmitting ? t("submitting") : t("submitComplaint")}
             </button>

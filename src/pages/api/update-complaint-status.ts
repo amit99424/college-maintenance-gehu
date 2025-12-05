@@ -31,46 +31,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       lastUpdatedByRole: 'Admin',
     });
 
-    // Create notification for the student
+    // Create notification for the student (creator)
     if (message && message.trim()) {
       await addDoc(collection(db, 'notifications'), {
-        userId: complaintData.userId,
         complaintId: complaintId,
-        complaintTitle: complaintData.title,
         message: message.trim(),
-        createdAt: new Date(),
-        read: false,
-        updatedBy: 'Admin',
+        roles: ["student", "staff"],
+        category: complaintData.category,
+        targetUid: complaintData.userId,
+        seen: false,
+        timestamp: new Date(),
       });
     } else {
       // Always create a notification for status update
       await addDoc(collection(db, 'notifications'), {
-        userId: complaintData.userId,
         complaintId: complaintId,
-        complaintTitle: complaintData.title,
         message: `Your complaint "${complaintData.title}" status has been updated to ${newStatus}`,
-        createdAt: new Date(),
-        read: false,
-        updatedBy: 'Admin',
+        roles: ["student", "staff"],
+        category: complaintData.category,
+        targetUid: complaintData.userId,
+        seen: false,
+        timestamp: new Date(),
       });
     }
 
-    // Create notifications for all admins
-    const adminQuery = query(collection(db, 'users'), where('role', '==', 'admin'));
-    const adminsSnapshot = await getDocs(adminQuery);
-    const adminNotifications: Promise<DocumentReference>[] = [];
-    adminsSnapshot.forEach((docSnap) => {
-      adminNotifications.push(addDoc(collection(db, 'notifications'), {
-        userId: docSnap.id,
+    // Create notifications for supervisors matching the complaint category
+    const supervisorQuery = query(collection(db, 'users'), where('role', '==', 'supervisor'), where('department', '==', complaintData.category));
+    const supervisorSnapshot = await getDocs(supervisorQuery);
+    const supervisorNotifications: Promise<DocumentReference>[] = [];
+    supervisorSnapshot.forEach((docSnap) => {
+      supervisorNotifications.push(addDoc(collection(db, 'notifications'), {
         complaintId: complaintId,
-        complaintTitle: complaintData.title,
-        message: `Complaint "${complaintData.title}" status updated to ${newStatus}`,
-        createdAt: new Date(),
-        read: false,
-        updatedBy: 'Admin',
+        message: `Complaint "${complaintData.title}" in your department status updated to ${newStatus}`,
+        roles: ["supervisor"],
+        category: complaintData.category,
+        targetUid: docSnap.id,
+        seen: false,
+        timestamp: new Date(),
       }));
     });
-    await Promise.all(adminNotifications);
+    await Promise.all(supervisorNotifications);
 
     res.status(200).json({ success: true, message: 'Complaint status updated successfully' });
   } catch (error) {

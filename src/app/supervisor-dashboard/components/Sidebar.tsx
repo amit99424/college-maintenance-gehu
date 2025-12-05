@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db, auth } from "@/firebase/config";
 import { useLanguage } from "../../../contexts/LanguageContext";
 
 interface UserData {
@@ -23,10 +25,14 @@ interface MenuItem {
   id: string;
   label: string;
   icon: string;
+  badge?: number;
 }
 
 export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen, onLogout }: SidebarProps) {
   const { t } = useLanguage();
+
+
+
 
   const menuItems: MenuItem[] = [
     {
@@ -110,6 +116,7 @@ export default function Sidebar({ activeSection, setActiveSection, userData, isO
               >
                 <span className="text-lg mr-3">{item.icon}</span>
                 <span className="font-medium">{item.label}</span>
+
               </button>
             </div>
           ))}

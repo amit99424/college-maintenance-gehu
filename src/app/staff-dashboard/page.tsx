@@ -11,8 +11,8 @@ import ComplaintsList from "./components/ComplaintsList";
 import ReopenComplaint from "./components/ReopenComplaint";
 import Profile from "./components/Profile";
 import ChangePassword from "./components/ChangePassword";
-import Notifications from "./components/Notifications";
 import NotificationDropdown from "@/components/NotificationDropdown";
+
 import { useTranslation } from "react-i18next";
 
 interface UserData {
@@ -26,12 +26,7 @@ interface UserData {
   [key: string]: unknown;
 }
 
-interface Notification {
-  id: string;
-  message: string;
-  timestamp: string;
-  isRead: boolean;
-}
+
 
 export default function StaffDashboard() {
   const { t } = useTranslation();
@@ -42,8 +37,9 @@ export default function StaffDashboard() {
 
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
 
   useEffect(() => {
     // Check localStorage first
@@ -70,31 +66,32 @@ export default function StaffDashboard() {
     }
   }, [router]);
 
+  // Fetch notifications for staff
   useEffect(() => {
-    if (!userData?.uid) return;
+    if (!userData) return;
 
-    const q = query(
-      collection(db, "notifications"),
-      where("userId", "==", userData.uid),
-      orderBy("createdAt", "desc")
-    );
-
+    const q = query(collection(db, "notifications"), where("sentTo", "==", "staff"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const notificationsData: Notification[] = [];
+      const notificationsMap = new Map();
       querySnapshot.forEach((doc) => {
-        const data = doc.data() as DocumentData;
-        notificationsData.push({
-          id: doc.id,
-          message: data.message,
-          timestamp: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString() : "N/A",
-          isRead: data.read || false,
-        });
+        const data = doc.data();
+        const complaintId = data.complaintId;
+        if (!notificationsMap.has(complaintId)) {
+          notificationsMap.set(complaintId, {
+            id: doc.id,
+            message: data.message,
+            timestamp: data.createdAt?.toDate?.()?.toLocaleString() || new Date().toLocaleString(),
+            isRead: data.read || false,
+          });
+        }
       });
-      setNotifications(notificationsData);
+      setNotifications(Array.from(notificationsMap.values()));
     });
 
     return () => unsubscribe();
-  }, [userData?.uid]);
+  }, [userData]);
+
+
 
   const handleLogout = async () => {
     try {
@@ -106,25 +103,7 @@ export default function StaffDashboard() {
     }
   };
 
-  const handleClearAll = async () => {
-    try {
-      const promises = notifications.map(notification =>
-        updateDoc(doc(db, "notifications", notification.id), { read: true })
-      );
-      await Promise.all(promises);
-      setNotifications([]);
-    } catch (error) {
-      console.error("Failed to clear all notifications:", error);
-    }
-  };
 
-  const handleMarkAsRead = async (id: string) => {
-    try {
-      await updateDoc(doc(db, "notifications", id), { read: true });
-    } catch (error) {
-      console.error("Failed to mark notification as read:", error);
-    }
-  };
 
   const renderActiveSection = () => {
     switch (activeSection) {
@@ -132,8 +111,7 @@ export default function StaffDashboard() {
         return <ComplaintForm hidePreferredDateTime={true} />;
       case "my-complaints":
         return <ComplaintsList />;
-      case "notifications":
-        return <Notifications />;
+
       case "reopen-complaints":
         return <ReopenComplaint />;
       case "profile":
@@ -214,13 +192,17 @@ export default function StaffDashboard() {
 
           {/* Right Section */}
           <div className="flex items-center space-x-4">
-            {/* Notification Dropdown */}
             <NotificationDropdown
               notifications={notifications}
               isOpen={isNotificationOpen}
               onClose={() => setIsNotificationOpen(!isNotificationOpen)}
-              onClearAll={handleClearAll}
-              onMarkAsRead={handleMarkAsRead}
+              onClearAll={() => setNotifications([])}
+              onMarkAsRead={(id: string) => {
+                // Mark as read logic
+                setNotifications(prev =>
+                  prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+                );
+              }}
             />
 
             {/* Hamburger menu button for mobile */}

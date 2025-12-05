@@ -13,6 +13,8 @@ import {
   QueryConstraint,
   getDoc,
   addDoc,
+  getDocs,
+  DocumentReference,
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
@@ -41,6 +43,7 @@ interface Complaint {
   supervisorName?: string;
   preferredTime?: string;
   preferredDate?: string;
+  submittedBy?: string;
   [key: string]: unknown;
 }
 
@@ -54,6 +57,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
   const [categoryFilter, setCategoryFilter] = useState("");
   const [buildingFilter, setBuildingFilter] = useState("");
   const [submittedByFilter, setSubmittedByFilter] = useState("");
+  const [userNames, setUserNames] = useState<Record<string, string>>({});
 
   // Modal state
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -84,13 +88,32 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
 
     const unsubscribe = onSnapshot(
       q,
-      (snapshot) => {
+      async (snapshot) => {
         if (!isSubscribed) return;
         const complaintsData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Complaint[];
+
+        // Fetch user names for all complaints
+        const userIds = [...new Set(complaintsData.map(c => c.userId))];
+        const userNamesMap: Record<string, string> = {};
+
+        for (const userId of userIds) {
+          try {
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              userNamesMap[userId] = userData.name || "Unknown";
+            }
+          } catch (error) {
+            console.error("Error fetching user name:", error);
+            userNamesMap[userId] = "Unknown";
+          }
+        }
+
         setComplaints(complaintsData);
+        setUserNames(userNamesMap);
         setLoading(false);
       },
       (error) => {
@@ -129,8 +152,11 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
     return Array.from(new Set(categories));
   }, [complaints]);
 
-  // Helper to determine user type from email domain
-  const getUserTypeFromEmail = (email: string): string => {
+  // Helper to determine user type from email domain or submittedBy field
+  const getUserTypeFromEmail = (email: string, submittedBy?: string): string => {
+    if (submittedBy) {
+      return submittedBy.charAt(0).toUpperCase() + submittedBy.slice(1).toLowerCase();
+    }
     if (!email) return "Unknown";
     if (email.toLowerCase().endsWith("@gmail.com")) return "Student";
     if (email.toLowerCase().endsWith("@staff.com")) return "Staff";
@@ -177,15 +203,76 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
       const complaintDoc = await getDoc(doc(db, "complaints", complaintId));
       if (complaintDoc.exists()) {
         const complaintData = complaintDoc.data();
+
+        // Create notification for the student/staff who submitted the complaint
         await addDoc(collection(db, "notifications"), {
           userId: complaintData.userId,
-          message: `Your complaint "${complaintData.title}" is now ${newStatus}`,
           complaintId: complaintId,
           complaintTitle: complaintData.title,
+          message: `Your complaint "${complaintData.title}" status has been updated to ${newStatus}`,
           createdAt: new Date(),
           read: false,
           updatedBy: "Admin",
+          department: complaintData.category,
+          sentTo: "student",
         });
+
+        // Create notifications for all admins
+        const adminQuery = query(collection(db, "users"), where("role", "==", "admin"));
+        const adminsSnapshot = await getDocs(adminQuery);
+        const adminNotifications: Promise<DocumentReference>[] = [];
+        adminsSnapshot.forEach((docSnap) => {
+          adminNotifications.push(addDoc(collection(db, "notifications"), {
+            userId: docSnap.id,
+            complaintId: complaintId,
+            complaintTitle: complaintData.title,
+            message: `Complaint "${complaintData.title}" status updated to ${newStatus}`,
+            createdAt: new Date(),
+            read: false,
+            updatedBy: "Admin",
+            department: complaintData.category,
+            sentTo: "admin",
+          }));
+        });
+        await Promise.all(adminNotifications);
+
+        // Create notifications for all staff
+        const staffQuery = query(collection(db, "users"), where("role", "==", "staff"));
+        const staffSnapshot = await getDocs(staffQuery);
+        const staffNotifications: Promise<DocumentReference>[] = [];
+        staffSnapshot.forEach((docSnap) => {
+          staffNotifications.push(addDoc(collection(db, "notifications"), {
+            userId: docSnap.id,
+            complaintId: complaintId,
+            complaintTitle: complaintData.title,
+            message: `Complaint "${complaintData.title}" status updated to ${newStatus}`,
+            createdAt: new Date(),
+            read: false,
+            updatedBy: "Admin",
+            department: complaintData.category,
+            sentTo: "staff",
+          }));
+        });
+        await Promise.all(staffNotifications);
+
+        // Create notifications for all supervisors
+        const supervisorQuery = query(collection(db, "users"), where("role", "==", "supervisor"));
+        const supervisorSnapshot = await getDocs(supervisorQuery);
+        const supervisorNotifications: Promise<DocumentReference>[] = [];
+        supervisorSnapshot.forEach((docSnap) => {
+          supervisorNotifications.push(addDoc(collection(db, "notifications"), {
+            userId: docSnap.id,
+            complaintId: complaintId,
+            complaintTitle: complaintData.title,
+            message: `Complaint "${complaintData.title}" status updated to ${newStatus}`,
+            createdAt: new Date(),
+            read: false,
+            updatedBy: "Admin",
+            department: complaintData.category,
+            sentTo: "supervisor",
+          }));
+        });
+        await Promise.all(supervisorNotifications);
       }
 
       toast.success(`Complaint status updated to ${newStatus}`);
@@ -442,7 +529,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
                     </span>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap capitalize text-gray-900">
-                    {getUserTypeFromEmail(complaint.userEmail)}
+                    {getUserTypeFromEmail(complaint.userEmail, complaint.submittedBy)}
                   </td>
 
                   <td className="px-4 py-4 whitespace-nowrap">
@@ -503,7 +590,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
                 {complaint.room}
               </p>
               <p className="text-xs text-gray-800 mb-1 capitalize">
-                <strong>Submitted By:</strong> {getUserTypeFromEmail(complaint.userEmail)}
+                <strong>Submitted By:</strong> {getUserTypeFromEmail(complaint.userEmail, complaint.submittedBy)}
               </p>
 
               <p className="text-xs text-gray-800 mb-2">
@@ -586,7 +673,7 @@ export default function AllComplaintsTable({ initialStatusFilter }: { initialSta
                 <div className="space-y-3">
                   <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Submitted By")}</span>
-                    <p className="text-gray-900 font-medium capitalize">{getUserTypeFromEmail(selectedComplaint.userEmail)}</p>
+                    <p className="text-gray-900 font-medium capitalize">{getUserTypeFromEmail(selectedComplaint.userEmail, selectedComplaint.submittedBy)}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t("Last Updated By")}</span>

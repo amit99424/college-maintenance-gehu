@@ -26,7 +26,7 @@ export default function ComplaintsList() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filteredComplaints, setFilteredComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "pending" | "in progress" | "completed" | "Reopened">("all");
+  const [filter, setFilter] = useState<"all" | "pending" | "in progress" | "resolved" | "Reopened">("all");
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -169,7 +169,7 @@ export default function ComplaintsList() {
 
             {/* Filter Buttons */}
             <div className="flex flex-wrap space-x-2 space-y-2 md:space-y-0">
-              {(["all", "pending", "in progress", "completed", "Reopened"] as const).map((status) => (
+              {(["all", "pending", "in progress", "resolved", "Reopened"] as const).map((status) => (
                 <button
                   key={status}
                   onClick={() => setFilter(status)}
@@ -179,8 +179,8 @@ export default function ComplaintsList() {
                         ? "bg-red-600 text-white"
                       : status === "in progress"
                         ? "bg-yellow-600 text-white"
-                        : status === "completed"
-                        ? "bg-purple-600 text-white"
+                        : status === "resolved"
+                        ? "bg-green-600 text-white"
                         : status === "Reopened"
                         ? "bg-orange-600 text-white"
                         : "bg-blue-600 text-white"
@@ -258,7 +258,7 @@ export default function ComplaintsList() {
                     >
                       {t("viewDetails")}
                     </button>
-                    {complaint.status.toLowerCase() === "completed" && (
+                    {complaint.status.toLowerCase() === "resolved" && (
                       <button
                         onClick={() => openReopenDialog(complaint.id)}
                         className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center space-x-1"

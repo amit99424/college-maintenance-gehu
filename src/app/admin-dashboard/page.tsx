@@ -13,8 +13,8 @@ import SupervisorUpdates from "./components/SupervisorUpdates";
 import Analytics from "./components/Analytics";
 import Profile from "./components/Profile";
 import ChangePassword from "./components/ChangePassword";
-import Notifications from "./components/Notifications";
 import NotificationDropdown from "@/components/NotificationDropdown";
+
 import { useTranslation } from "react-i18next";
 
 interface UserData {
@@ -34,16 +34,12 @@ export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("");
 
-  interface Notification {
-    id: string;
-    message: string;
-    timestamp: string;
-    isRead: boolean;
-  }
+  const [statusFilter, setStatusFilter] = useState("");
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+
 
   useEffect(() => {
     // Check localStorage first
@@ -70,51 +66,34 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  // Fetch notifications for admin
   useEffect(() => {
-    if (!userData?.uid) return;
+    if (!userData) return;
 
-    const q = query(
-      collection(db, "notifications"),
-      where("userId", "==", userData.uid),
-      orderBy("createdAt", "desc")
-    );
-
+    const q = query(collection(db, "notifications"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const notificationsData: Notification[] = [];
+      const notificationsMap = new Map();
       querySnapshot.forEach((doc) => {
-        const data = doc.data() as DocumentData;
-        notificationsData.push({
-          id: doc.id,
-          message: data.message,
-          timestamp: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString() : "N/A",
-          isRead: data.read || false,
-        });
+        const data = doc.data();
+        const complaintId = data.complaintId;
+        if (!notificationsMap.has(complaintId)) {
+          notificationsMap.set(complaintId, {
+            id: doc.id,
+            message: data.message,
+            timestamp: data.createdAt?.toDate?.()?.toLocaleString() || new Date().toLocaleString(),
+            isRead: data.read || false,
+          });
+        }
       });
-      setNotifications(notificationsData);
+      setNotifications(Array.from(notificationsMap.values()));
     });
 
     return () => unsubscribe();
-  }, [userData?.uid]);
+  }, [userData]);
 
-  const handleClearAll = async () => {
-    try {
-      const promises = notifications.map(notification =>
-        updateDoc(doc(db, "notifications", notification.id), { read: true })
-      );
-      await Promise.all(promises);
-      setNotifications([]);
-    } catch (error) {
-      console.error("Failed to clear all notifications:", error);
-    }
-  };
 
-  const handleMarkAsRead = async (id: string) => {
-    try {
-      await updateDoc(doc(db, "notifications", id), { read: true });
-    } catch (error) {
-      console.error("Failed to mark notification as read:", error);
-    }
-  };
+
+
 
   const handleLogout = async () => {
     try {
@@ -136,8 +115,7 @@ export default function AdminDashboard() {
         return <SupervisorUpdates />;
       case "analytics":
         return <Analytics />;
-      case "notifications":
-        return <Notifications />;
+
       case "profile":
         return userData ? <Profile userData={userData} /> : <div>{t("loading")}</div>;
       case "change-password":
@@ -218,13 +196,17 @@ export default function AdminDashboard() {
 
           {/* Right Section */}
           <div className="flex items-center space-x-4">
-            {/* Notification Dropdown */}
             <NotificationDropdown
               notifications={notifications}
               isOpen={isNotificationOpen}
               onClose={() => setIsNotificationOpen(!isNotificationOpen)}
-              onClearAll={handleClearAll}
-              onMarkAsRead={handleMarkAsRead}
+              onClearAll={() => setNotifications([])}
+              onMarkAsRead={(id: string) => {
+                // Mark as read logic
+                setNotifications(prev =>
+                  prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+                );
+              }}
             />
 
             {/* Hamburger menu button for mobile */}

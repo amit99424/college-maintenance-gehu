@@ -29,25 +29,10 @@ interface MenuItem {
 }
 
 export default function Sidebar({ activeSection, setActiveSection, userData, isOpen = true, setIsOpen, onLogout }: SidebarProps) {
-  const [unreadCount, setUnreadCount] = useState(0);
+
   const { t } = useTranslation();
 
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) return;
 
-    const q = query(
-      collection(db, "notifications"),
-      where("userId", "==", user.uid),
-      where("read", "==", false)
-    );
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      setUnreadCount(querySnapshot.size);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const menuItems: MenuItem[] = [
     {
