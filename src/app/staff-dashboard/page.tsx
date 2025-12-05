@@ -26,6 +26,13 @@ interface UserData {
   [key: string]: unknown;
 }
 
+interface Notification {
+  id: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+}
+
 
 
 export default function StaffDashboard() {
@@ -37,7 +44,7 @@ export default function StaffDashboard() {
 
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
 

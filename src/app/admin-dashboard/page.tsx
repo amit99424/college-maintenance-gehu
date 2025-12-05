@@ -26,6 +26,13 @@ interface UserData {
   [key: string]: unknown;
 }
 
+interface Notification {
+  id: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+}
+
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -36,7 +43,7 @@ export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState("");
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
 
