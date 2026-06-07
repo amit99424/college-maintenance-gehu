@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, forwardRef } from "react";
@@ -134,7 +135,7 @@ export default function SignupPage() {
       </div>
 
       {/* Main Container */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-4">
+      <div className="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 lg:px-8 py-2 sm:py-3">
         <div className="w-[90%] sm:w-full max-w-sm bg-white/20 backdrop-transparent-lg rounded-2xl shadow-2xl border border-white/20 animate-fadeInZoom">
           {/* Logo Area */}
           <div className="bg-white rounded-t-2xl p-4 flex justify-center items-center shadow-inner">
@@ -143,13 +144,13 @@ export default function SignupPage() {
               alt="University Logo"
               width={400}
               height={100}
-              className="w-72 sm:w-96 h-auto"
+              className="w-56 sm:w-72 md:w-80 h-auto"
               priority
             />
           </div>
           <form
             onSubmit={handleSignup}
-            className="flex flex-col gap-4 sm:gap-5 p-4 sm:p-6 md:p-8"
+            className="flex flex-col gap-3 sm:gap-4 p-3 sm:p-5 md:p-6"
           >
             {/* Full Name */}
             <div className="relative w-full">
